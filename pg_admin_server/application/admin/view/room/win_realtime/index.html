@@ -1,0 +1,650 @@
+<style>
+    .content{
+        padding-top: 0;
+    }
+    .centered {
+        width: 80%;
+        margin: 0 auto;
+        background: #fff;
+        margin-top: 10px;
+        padding-bottom: 50px;
+        -webkit-box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.75);
+        -moz-box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.75);
+        box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.75);
+    }
+
+    .ivu-btn {
+        display: inline-block;
+        margin-bottom: 0;
+        font-weight: 400;
+        text-align: center;
+        touch-action: manipulation;
+        cursor: pointer;
+        background-image: none;
+        border: 1px solid transparent;
+        white-space: nowrap;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        padding: 6px 16px;
+        font-size: 12px;
+        border-radius: 4px;
+        transition: color .2s linear, background-color .2s linear, border .2s linear, box-shadow .2s linear;
+        color: #666;
+        background-color: #fff;
+        border-color: #ededed;
+    }
+
+    .collect .ivu-btn:first-of-type {
+        border-radius: 4px 0 0 4px;
+    }
+
+    .ivu-btn-default {
+        margin-right: 20px;
+    }
+
+    .collect .ivu-btn {
+        font-size: 12px;
+        height: 28px;
+        line-height: 100%;
+        box-sizing: border-box;
+    }
+
+    .ivu-btn > span {
+        vertical-align: middle;
+    }
+
+    .active-btn {
+        background: #18bc9c;
+        color: #fff;
+        border: 1px solid #18bc9c;
+    }
+
+    .collect {
+        width: 100%;
+        margin: 0 auto;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .table-collect {
+        width: 90%;
+        margin: 0 auto;
+        text-align: center;
+        display: flex;
+    }
+
+    .table-left {
+        float: left;
+        width: 20%;
+    }
+
+    .table-right {
+        float: right;
+        width: 80%;
+    }
+    input[type="checkbox"], input[type="radio"]{
+        width: 20px;
+        height: 20px;
+    }
+    .label-radio{
+        width: 20px;
+        height: 20px;
+        display: block;
+        line-height: 20px;
+        margin: 4px 0 0;
+        margin-left: 20px;
+    }
+    .radio label, .checkbox label{
+        padding-left: 0;
+        margin-left: 20px;
+    }
+    /* 全屏遮罩层 */
+    .full-screen-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    /* 中间的div */
+    .content2 {
+        background-color: #fff; /* 白色背景 */
+        padding: 20px;
+        border-radius: 10px; /* 圆角边框 */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* 阴影效果 */
+        width: 85%; /* 宽度设置为50%，以便在屏幕中间居中 */
+    }
+    .table-right tbody tr:nth-child(1) {
+        background-color: #c9ffe0 !important;
+    }
+    .table-right tbody tr:nth-child(2) {
+        background-color: #d1ecfd !important;
+    }
+    .table-right tbody tr:nth-child(3) {
+        background-color: #ffded9 !important;
+    }
+    .table-right tbody tr:nth-child(4) {
+        background-color: #fff1dc !important;
+    }
+    .table-right tbody tr:nth-child(5) {
+        background-color: #c9ffe0 !important;
+    }
+
+    .table-right tbody tr td{
+        padding: 15px;
+    }
+    /* 模拟对角线 */
+    .oline {
+        border-top: 40px #fff solid;
+        border-left: 80px #fff solid;
+        position: relative;
+    }
+    .oline::before {
+        position: absolute;
+        top: -40px;
+        left: -80px;
+        width: 92px;
+        height: 40px;
+        background: #d1ecfd url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxsaW5lIHgxPSIwIiB5MT0iMCIgeDI9IjEwMCUiIHkyPSIxMDAlIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=) no-repeat 100% center;
+        content: '';
+    }
+    .refresh-table .oline::before {
+        position: absolute;
+        top: -40px;
+        left: -80px;
+        width: 119px;
+        height: 40px;
+        background: #d1ecfd url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxsaW5lIHgxPSIwIiB5MT0iMCIgeDI9IjEwMCUiIHkyPSIxMDAlIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=) no-repeat 100% center;
+        content: '';
+    }
+
+    .span1 {
+        font-style: normal;
+        display: block;
+        position: absolute;
+        top: -35px;
+        left: -30px;
+        color: #545353;
+    }
+
+    .span2 {
+        font-style: normal;
+        display: block;
+        position: absolute;
+        top: -23px;
+        left: -65px;
+        color: #545353;
+    }
+    .refresh-table .span1 {
+        font-style: normal;
+        display: block;
+        position: absolute;
+        top: -35px;
+        left: -10px;
+        color: #545353;
+    }
+
+    .refresh-table .span2 {
+        font-style: normal;
+        display: block;
+        position: absolute;
+        top: -23px;
+        left: -60px;
+        color: #545353;
+    }
+</style>
+
+<div id="app">
+
+    <div class="panel panel-default panel-intro">
+        <div class="panel-heading">
+            <ul class="nav nav-tabs">
+                <li :class="[1=== tab_type?'active':'']" @click="SwitchTabType(1)">
+                    <a href="javascript:;">WinGo预估</a>
+                </li>
+                <li :class="[2=== tab_type?'active':'']" @click="SwitchTabType(2)">
+                    <a href="javascript:;">WinGo预估记录</a>
+                </li>
+            </ul>
+        </div>
+
+
+        <div class="panel-body" v-show="tab_type===1">
+
+            <div class="collect" style="padding-bottom: 20px">
+                <button type="button" class="ivu-btn ivu-btn-default" v-for="(item,index) in RoomList" :key="index"
+                        :class="[item.id=== RoomID?'active-btn':'']" @click="SwitchRoom(item.id,item.formatted_time)">
+                    <span>{{item.formatted_time}}</span>
+                </button>
+            </div>
+            <div class="table-collect">
+                <div class="table-left">
+                    <p style="padding: 5px 5px 5px 20px;border-left: 5px solid #18bc9c;border-bottom: 1px solid #18bc9c;background: #f3f3f3">
+                        预估开奖：
+                    </p>
+                    <button type="button" class="ivu-btn ivu-btn-default active-btn" @click="modelswitch()">
+                        <i class="fa fa-search"></i> 预估数据
+                    </button>
+                    <button type="button" class="ivu-btn ivu-btn-default active-btn {:$auth->check('room/wingo_log/index')?'':'hide'}" @click="fast_open()">
+                        <i class="fa fa-gears"></i> 玩家下注详情
+                    </button>
+                </div>
+                <div class="table-right">
+
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <label class="control-label col-xs-12 col-sm-2">{:__('期数')}:</label>
+                            <div class="col-xs-12 col-sm-8">
+                                <input class="form-control" type="text" v-model="issue" disabled readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-xs-12 col-sm-2">{:__('预设开奖号码')}:</label>
+                            <div class="col-xs-12 col-sm-8">
+                                <input class="form-control" type="text" v-model="number_pre" disabled readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-xs-12 col-sm-2">{:__('距离开奖还有')}:</label>
+                            <div class="col-xs-12 col-sm-8">
+                                <input class="form-control" type="text" v-model="draw_time_title" disabled readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-xs-12 col-sm-2">设置开奖号码:</label>
+                            <div class="col-xs-12 col-sm-8">
+                                <div class="radio">
+                                    <label><input type="radio" value="0" v-model="winning_numbers"> <span class="label-radio">0</span></label>
+                                    <label><input type="radio" value="1" v-model="winning_numbers"> <span class="label-radio">1</span></label>
+                                    <label><input type="radio" value="2" v-model="winning_numbers"> <span class="label-radio">2</span></label>
+                                    <label><input type="radio" value="3" v-model="winning_numbers"> <span class="label-radio">3</span></label>
+                                    <label><input type="radio" value="4" v-model="winning_numbers"> <span class="label-radio">4</span></label>
+                                    <label><input type="radio" value="5" v-model="winning_numbers"> <span class="label-radio">5</span></label>
+                                    <label><input type="radio" value="6" v-model="winning_numbers"> <span class="label-radio">6</span></label>
+                                    <label><input type="radio" value="7" v-model="winning_numbers"> <span class="label-radio">7</span></label>
+                                    <label><input type="radio" value="8" v-model="winning_numbers"> <span class="label-radio">8</span></label>
+                                    <label><input type="radio" value="9" v-model="winning_numbers"> <span class="label-radio">9</span></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="collect" style="padding-bottom: 15px">
+                            <button type="button" class="ivu-btn ivu-btn-default active-btn">总投注：{{TotalData.sum_amount}}</button>
+                            <button type="button" class="ivu-btn ivu-btn-default active-btn">玩家中奖金额：{{TotalData.win_amount}}</button>
+                            <button type="button" class="ivu-btn ivu-btn-default active-btn">总投注数：{{TotalData.bet_number}}</button>
+                            <button type="button" class="ivu-btn ivu-btn-default active-btn">中奖人数：{{TotalData.win_number}}</button>
+                            <button type="button" class="ivu-btn ivu-btn-default active-btn">手续费：{{TotalData.sum_fee}}</button>
+                            <button type="button" class="ivu-btn ivu-btn-default active-btn">盈亏：{{TotalData.sum_transfer}}</button>
+                        </div>
+
+                        <div class="form-group layer-footer">
+                            <label class="control-label col-xs-12 col-sm-2"></label>
+                            <div class="col-xs-12 col-sm-8">
+                                <button type="submit" class="btn btn-primary btn-embossed" @click="winning_submit()">提交开奖信息</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="full-screen-overlay"  v-show="model_status" @click="modelswitch()" style="display: none">
+                <!-- 中间的div -->
+                <div class="content2" @click.stop="">
+
+                    <div class="table-collect">
+                        <div class="table-left">
+                            <p style="padding: 5px 5px 5px 20px;border-left: 5px solid #18bc9c;border-bottom: 1px solid #18bc9c;background: #f3f3f3">
+                                {{Roomname}} - 房间：
+                            </p>
+                            <button type="button" class="ivu-btn ivu-btn-default active-btn" @click="Secondsalgorithm(1)">
+                                <i class="fa fa-refresh"></i> 刷新数据
+                            </button>
+                        </div>
+                        <div class="table-right">
+                            <table class="table table-striped table-bordered table-hover table-nowrap" style="width: 70%;margin: 0 auto;">
+                                <thead>
+                                <tr style="font-weight: bold;font-size: 15px;background: #6abcee;color: #fff;" class="refresh-table">
+                                    <th style="text-align: center; vertical-align: middle;padding: 0;" >
+                                        <div class="oline">
+                                            <span class="span1" style="color: #000;">号码</span>
+                                            <span class="span2" style="color: #000;">类型</span>
+                                        </div>
+                                    </th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 0</th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 1</th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 2</th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 3</th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 4</th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 5</th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 6</th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 7</th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 8</th>
+                                    <th style="text-align: center; vertical-align: middle;">数字 9</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr v-for="(item,index) in RoomData" :key="index">
+                                    <td style="text-align: center; vertical-align: middle;font-weight: bold;font-size: 15px;">
+                                        <div style="padding: 3px 5px;color: #fff;" :style="{background:item.name.color}">
+                                            {{item.name.name}}
+                                        </div>
+                                    </td>
+
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[0]}}</td>
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[1]}}</td>
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[2]}}</td>
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[3]}}</td>
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[4]}}</td>
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[5]}}</td>
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[6]}}</td>
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[7]}}</td>
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[8]}}</td>
+                                    <td style="text-align: center; vertical-align: middle; ">{{item[9]}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-collect">
+                <div class="table-left">
+                    <p style="padding: 5px 5px 5px 20px;border-left: 5px solid #18bc9c;border-bottom: 1px solid #18bc9c;background: #f3f3f3">
+                        {{Roomname}} - 投注详情：
+                    </p>
+                </div>
+                <div class="table-right">
+
+                    <div class="collect" style="padding-bottom: 5px;">
+                        <div style="height: 50px;line-height: 50px;font-weight: bold;">预估开奖号码</div>
+                        <button type="button" class="ivu-btn ivu-btn-default" v-for="(item,index) in resultData" :key="index"
+                                :class="[index === room_id?'active-btn':'']" @click="radio_click(index)">
+                            <span>{{index}}</span>
+                        </button>
+                    </div>
+                    <table class="table table-striped table-bordered table-hover table-nowrap" style="width: 70%;margin: 0 auto;">
+                        <thead>
+                        <tr>
+                            <th style="padding: 0">
+                                <div class="oline">
+                                    <span class="span1">号码</span>
+                                    <span class="span2">类型</span>
+                                </div>
+                            </th>
+                            <th style="text-align: center; vertical-align: middle; " v-for="(item,index) in new_tab" :key="index"  :style="{background:item.color}">
+                                <div class="th-inner" style="font-weight: bold;font-size: 15px;color:#fff;">{{item.name}}</div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item,index) in RoomDataDetails" :key="index">
+                                <td style="text-align: center; vertical-align: middle;font-weight: bold;font-size: 12px;">
+
+                                    <div style="padding: 3px 5px;color: #fff;" :style="{background:item.name.color}">
+                                        {{item.name.name}}
+                                    </div>
+
+                                </td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[0]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[1]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[2]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[3]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[4]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[5]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[6]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[7]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[8]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[9]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[10]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[11]}}</td>
+                                <td style="text-align: center; vertical-align: middle; ">{{item[12]}}</td>
+<!--                                <td style="text-align: center; vertical-align: middle; ">{{item[13]}}</td>-->
+<!--                                <td style="text-align: center; vertical-align: middle; ">{{item[14]}}</td>-->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="panel-body" v-show="tab_type===2">
+            <div id="myTabContent" class="tab-content">
+                <div class="tab-pane fade active in" id="one">
+                    <div class="widget-body no-padding">
+                        <div id="toolbar" class="toolbar">
+                            {:build_toolbar('refresh')}
+                        </div>
+                        <table id="table" class="table table-striped table-bordered table-hover table-nowrap"
+                               data-operate-edit="{:$auth->check('room/win_realtime/edit')}"
+                               data-operate-del="{:$auth->check('room/win_realtime/del')}"
+                               data-operate-detail="{:$auth->check('room/wingo_log/index')}"
+                               data-operate-statistics_detail="{:$auth->check('room/wingo_statistics_detail/index')}"
+                               width="100%">
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script src="/assets/js/vue.js"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            model_status:false,
+            get_switch:0,
+            issue: '',
+            number_pre: '',
+            draw_time: 0,
+            draw_time_title: 0,
+            winning_numbers: 0,
+            tab_type: 1,
+            RoomID: 1,
+            room_id: 0,
+            SecondsCount: 5,
+            Roomname: '',
+            RoomList: [],
+            new_tab: [],
+            RoomData: [],
+            TotalData: [],
+            resultData: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            RoomDataDetails: [],
+        },
+        mounted() {
+            this.wingo_room();
+            this.LatestData();
+            this.LatestDatadetails();
+            this.reckon_by_time();
+        },
+        methods: {
+            fast_open(){
+                Fast.api.open('room/wingo_log/index?issue='+this.issue+'&room_id='+this.RoomID, this.Roomname+':'+this.issue+':玩家下注详情',{area:['80%', '90%']});
+            },
+            modelswitch(){
+                this.model_status = this.model_status !== true;
+            },
+            convertSecondsToTime(seconds) {
+                //封装返回时分秒
+                var hours = Math.floor(seconds / 3600);
+                var minutes = Math.floor((seconds % 3600) / 60);
+                var remainingSeconds = seconds % 60;
+                return  hours + "小时 " + minutes + "分钟 " + remainingSeconds + "秒";
+            },
+            reckon_by_time(){
+                //开奖距离时间计时器
+                clearTimeout(draw_timeID);
+                let that = this
+                var draw_timeID = setTimeout(() => {
+                    if(that.draw_time>0){
+                        that.draw_time--
+                    }
+                    that.draw_time_title = that.convertSecondsToTime(that.draw_time);
+                    that.reckon_by_time();
+                }, 1000);
+            },
+            winning_submit(){
+                //提交预设开奖信息
+                let that = this
+                Layer.confirm('确定要提交开奖信息？', {icon: 3, title:'提交开奖信息'},
+                    function(index){
+                        layer.close(index);
+                        $.ajax({
+                            url: "{:url('winning_submit')}",
+                            type: 'post',
+                            data: {
+                                room_id: that.RoomID,
+                                issue: that.issue,
+                                winning_numbers: that.winning_numbers,
+                            },
+                            success: function (res) {
+                                if(res.code === 0){
+                                    layer.msg(res.msg);
+                                }else{
+                                    layer.msg(res.msg);
+                                    that.SubmitLatestData();
+                                    that.SubmitLatestDatadetails();
+                                    that.get_switch = 0;
+                                }
+                            }
+                        })
+                    }
+                );
+            },
+            SwitchTabType(type) {
+                //切换预估与记录
+                this.tab_type = type;
+                this.get_switch = 0;
+                this.SubmitLatestData();
+                this.SubmitLatestDatadetails();
+            },
+            Secondsalgorithm() {
+                //刷新数据
+                this.ajaxStop();
+                this.get_switch = 0;
+                this.SubmitLatestData();
+                this.SubmitLatestDatadetails();
+            },
+            radio_click(room_id) {
+                //选择下注号码，获取详细投注详情
+                this.room_id = room_id
+                this.ajaxStop();
+                this.SubmitLatestDatadetails();
+            },
+            SwitchRoom(room_id, name) {
+                //切换游戏房间
+                this.ajaxStop();
+                this.RoomID = room_id;
+                this.Roomname = name;
+                this.get_switch = 0;
+                this.SubmitLatestData();
+                this.SubmitLatestDatadetails();
+            },
+            wingo_room() {
+                //获取游戏房间列表
+                let that = this
+                $.ajax({
+                    url: "{:url('wingo_room')}",
+                    type: 'get',
+                    async: false,
+                    success: function (res) {
+                        that.RoomList = res;
+                        that.RoomID = res[0].id;
+                        that.Roomname = res[0].formatted_time;
+                    }
+                })
+            },
+            LatestData() {
+                //获取房间统计信息
+                clearTimeout(timeoutID);
+                let that = this
+                that.SubmitLatestData();
+                var timeoutID = setTimeout(function () {
+                    that.LatestData()
+                }, that.SecondsCount * 1000);
+            },
+            LatestDatadetails() {
+                //获取房间详细的统计信息
+                clearTimeout(timeoutID);
+                let that = this
+                that.SubmitLatestDatadetails();
+                var timeoutID = setTimeout(function () {
+                    that.LatestDatadetails()
+                }, that.SecondsCount * 1000);
+            },
+            SubmitLatestData() {
+                //获取房间统计信息
+                return new Promise((resolve, reject) => {
+                        if (this.tab_type === 1) {
+                    let that = this
+                    $.ajax({
+                        url: "{:url('LatestData')}",
+                        type: 'get',
+                        data: {room_id: this.RoomID},
+                        success: function (res) {
+                            that.RoomData = res;
+                        }
+                    })
+                }
+                });
+            },
+            SubmitLatestDatadetails() {
+                //获取房间详细的统计信息
+                return new Promise((resolve, reject) => {
+                if (this.tab_type === 1) {
+                    let that = this
+                    $.ajax({
+                        url: "{:url('details')}",
+                        type: 'get',
+                        data: {
+                            room_id: this.RoomID,
+                            number: this.room_id,
+                        },
+                        success: function (res) {
+                            that.RoomDataDetails = res.list;
+                            that.TotalData = res.total_data;
+                            that.issue = res.issue;
+                            that.draw_time = res.draw_time;
+                            that.new_tab = res.new_tab;
+                            that.number_pre = res.number_pre;
+                            if(that.get_switch < 1){
+                                if(res.number_pre !== '未设定'){
+                                    that.winning_numbers = res.number_pre;
+                                    that.room_id = res.number_pre;
+                                }else{
+                                    that.winning_numbers = 0;
+                                }
+                            }
+                            that.get_switch ++;
+                        }
+                    })
+                }
+                });
+            },
+            switch_password() {
+                this.password_type = this.password_type === 'password' ? 'text' : 'password';
+            },
+            ajaxStop() {
+                // var index = layer.msg('加载中', {icon: 16, shade: 0.3, time: 0});
+                // $(document).ajaxStop(function () {
+                //     // 表格数据加载完成
+                //     Layer.close(index)
+                // });
+            }
+
+        }
+    })
+</script>

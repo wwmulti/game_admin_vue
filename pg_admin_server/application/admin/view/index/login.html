@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="vip-theme">
+<head>
+    {include file="common/meta" /}
+    <link href="/assets/css/app.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+    <div class="es-page">
+        <div class="flex1 flex1 base-img-style1" style="background-image: url('/assets/img/style1-background.png'); background-size: cover !important; background-position: center center !important;">
+            <div class="es-body" style="background: rgba(255, 255, 255, 0.8);">
+                <div class="es-content">
+                    <div class="login-body" style="height: 100vh;">
+                        <div>
+                            <div class="es-login-style1">
+<!--                                <div class="es-login-style1-left" style="background-image: url('/assets/img/login_adv.png');">-->
+<!--                                    <div class="title">-->
+<!--                                        随时随地，畅玩无界限-->
+<!--                                    </div>-->
+<!--                                    <div class="subtitle">-->
+<!--                                        不只是游戏，更是一个全新的生活方式-->
+<!--                                    </div>-->
+<!--                                </div>-->
+                                <div class="style1-login login-wrapper" style="margin: 0 auto">
+                                    <div>
+                                        <div class="style1-login-title">你好，欢迎登录</div>
+                                        <form autocomplete="off" class="ivu-form ivu-form-label-right" id="login-form" action="" method="post">
+                                            {:token()}
+                                            <div class="ivu-form-item ivu-form-item-required account-form-item" style="margin-bottom: 30px;">
+                                                <div class="ivu-form-item-content">
+                                                    <div class="style-input">
+                                                        <div class="input-logo">
+                                                            <i class="iconweb iconweb-yonghu"></i>
+                                                        </div>
+                                                        <div class="account-input ivu-input-wrapper ivu-input-wrapper-default ivu-input-type-text input-group" style="width: 100%">
+                                                            <i class="ivu-icon ivu-icon-ios-close-empty ivu-input-icon ivu-input-icon-normal"></i>
+                                                            <input @keyup.enter="form_submit()" v-model="username" id="pd-form-username" type="text" placeholder="登录帐号" class="ivu-input ivu-input-default">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="ivu-form-item ivu-form-item-required password-form-item" style="margin-bottom: 30px;">
+                                                <div class="ivu-form-item-content">
+                                                    <div class="style-input">
+                                                        <div class="input-logo">
+                                                            <i class="iconweb iconweb-mima"></i>
+                                                        </div>
+                                                        <div class="account-input ivu-input-wrapper ivu-input-wrapper-default ivu-input-type-text" style="width: 80%">
+                                                            <i class="ivu-icon ivu-icon-ios-loading ivu-load-loop ivu-input-icon ivu-input-icon-validate"></i>
+                                                            <input @keyup.enter="form_submit()" v-model="password" id="pd-form-password" :type="password_type" placeholder="登录密码" class="ivu-input ivu-input-default">
+                                                        </div>
+                                                        <div class="input-password-logo" style="z-index: 99" @click="switch_password()">
+                                                            <i class="iconweb iconweb-bukejianmima"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {if $Think.config.fastadmin.login_captcha}
+                                            <div class="ivu-form-item ivu-form-item-required password-form-item" style="margin-bottom: 30px;">
+                                                <div class="ivu-form-item-content">
+                                                    <div class="style-input">
+                                                        <div class="input-logo">
+                                                            <i class="iconweb iconweb-yanzhengma"></i>
+                                                        </div>
+                                                        <div class="account-input ivu-input-wrapper ivu-input-wrapper-default ivu-input-type-text" style="width: 60%">
+                                                            <i class="ivu-icon ivu-icon-ios-loading ivu-load-loop ivu-input-icon ivu-input-icon-validate"></i>
+                                                            <input @keyup.enter="form_submit()" v-model="captcha" id="pd-form-captcha" spellcheck="false" type="text" placeholder="验证码" class="ivu-input ivu-input-default">
+                                                        </div>
+                                                        <div class="input-password-logo" style="z-index: 99;width:40%">
+                                                            <img alt="验证码" src="{:rtrim('__PUBLIC__', '/')}/index.php?s=/captcha" id="img_captcha" style="width: 100%;" onclick="this.src = '{:rtrim('__PUBLIC__', '/')}/index.php?s=/captcha&r=' + Math.random();"/>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {/if}
+                                            <div class="ivu-form-item ivu-form-item-required account-form-item" style="margin-bottom: 30px;">
+                                                <div class="ivu-form-item-content">
+                                                    <div class="style-input">
+                                                        <div class="input-logo">
+                                                            <i class="iconweb iconweb-tishiicon"></i>
+                                                        </div>
+                                                        <div class="account-input ivu-input-wrapper ivu-input-wrapper-default ivu-input-type-text input-group" style="width: 100%">
+                                                            <i class="ivu-icon ivu-icon-ios-close-empty ivu-input-icon ivu-input-icon-normal"></i>
+                                                            <input @keyup.enter="form_submit()" v-model="googlecaptcha" id="pd-form-googlecaptcha" type="text" placeholder="如谷歌验证码开启，请填写谷歌验证码" class="ivu-input ivu-input-default">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="style-operation">
+                                                <div class="flex" style="align-items: center;">
+                                                    <label class="ivu-checkbox-wrapper ivu-checkbox-wrapper-checked ivu-checkbox-default">
+                                                        <span class="ivu-checkbox ivu-checkbox-checked">
+                                                            <input type="checkbox" name="keeplogin" id="keeplogin" v-model="keeplogin" @keyup.enter="form_submit()">
+                                                        </span>
+                                                        <span style="margin-left: 5px; font-size: 14px;">记住账号</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <button type="button" @click="form_submit()" @keyup.enter="form_submit()"
+                                                    class="style-login-botton account-btn ivu-btn ivu-btn ivu-btn-default">
+                                                <span>立即登录</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script src="/assets/js/vue.js"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            password_type: 'password',
+            username:'',
+            password:'',
+            captcha:'',
+            googlecaptcha:'',
+            keeplogin:'',
+        },
+        methods: {
+            switch_password(){
+                this.password_type = this.password_type === 'password' ? 'text' : 'password';
+            },
+            form_submit(){
+                if(this.username === ''){
+                    layer.msg("请输入登录账号");
+                    return false;
+                }else if(this.password === ''){
+                    layer.msg("请输入登录密码");
+                    return false;
+                }else{
+                    var tokenValue = $("input[name='__token__']").val();
+                    var index = layer.msg('登录中……', {icon: 16, shade: 0.3, time:0});
+                    $(document).ajaxStop(function() {
+                        // 表格数据加载完成
+                        Layer.close(index)
+                    });
+                    $.ajax({
+                        url: "{:url('login')}",
+                        type: 'post',
+                        data:{
+                            __token__:tokenValue,
+                            username:this.username,
+                            password:this.password,
+                            captcha:this.captcha,
+                            googlecaptcha:this.googlecaptcha,
+                        },
+                        success: function (res) {
+                            if(res.code == 0){
+                                $("input[name='__token__']").val(res.data.token)
+                                layer.msg(res.msg);
+                                $('#img_captcha').click();
+                            }else{
+                                layer.msg(res.msg);
+                                window.location.reload()
+                            }
+                        }
+                    })
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>

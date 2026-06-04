@@ -1,0 +1,171 @@
+<?php
+
+namespace app\command;
+
+use app\common\model\database1\Room;
+use app\common\model\database1\User;
+use app\common\model\Statistics\UserDailyStatistics as UserDailyStatisticsModel;
+use think\console\Input;
+use think\console\Output;
+use think\Db;
+use think\console\Command;
+
+class UserDailyStatistics extends Command
+{
+    protected function configure()
+    {
+        $this->setName('user_daily_stats_cron')->setDescription('玩家每日数据统计');
+    }
+
+    protected function execute(Input $input, Output $output)
+    {
+        $output->writeln('statistics reset_data Crontab job start;');
+
+//        $this->beiyong($output);
+        try {
+            $today = date('Y-m-d', time());
+            $yestorday = date('Y-m-d', time() - 3600 * 24);
+            $todayData = UserDailyStatisticsModel::where('date_time', $today)->find();
+            if (empty($todayData)) {
+                $this->time_judgement($output, $yestorday);  //每天只统计一次总金额
+                $this->time_judgement($output, $today);
+            } else {
+                $this->time_judgement($output, $today);
+            }
+        } catch (\Exception $exception) {
+            save_log('statistic_order', $exception->getMessage());
+        }
+        $output->writeln('statistics reset_data Crontab job end;');
+    }
+
+
+    public function beiyong($output)
+    {
+        $output->writeln('statistics statistic Crontab job start;' . date('Y-m-d H:i:s', time()));
+        $start_date = '2024-08-26';  // 开始日期
+        $end_date = date('Y-m-d', time());    // 结束日期
+        $current_date = strtotime($start_date);
+        $end_timestamp = strtotime($end_date);
+        while ($current_date <= $end_timestamp) {
+            $today = date('Y-m-d', $current_date);
+            $yestorday = date('Y-m-d', $current_date - 3600 * 24);
+            $todayData = UserDailyStatisticsModel::where('date_time', $today)->find();
+            if (empty($todayData)) {
+                $this->time_judgement($output, $yestorday);  //每天只统计一次总金额
+                $this->time_judgement($output, $today);
+            } else {
+                $this->time_judgement($output, $today);
+            }
+            $current_date = strtotime('+1 day', $current_date);  // 增加一天
+        }
+        $output->writeln('statistics statistic Crontab job end;' . date('Y-m-d H:i:s', time()));
+    }
+
+    public function time_judgement($output, $yesterday)
+    {
+        $output->writeln('statistics query data Crontab job start;' . date('Y-m-d H:i:s', time()));
+        $model = Model('TigerBetHistory');
+        $statistics_array = [];
+        $Room = Room::where('status', 1)->select();
+        $startTime = $yesterday . ' 00:00:00';
+        $endTime = $yesterday . ' 23:59:59';
+        $startStampTime = strtotime($startTime);
+        $endStampTime = strtotime($endTime);
+
+
+        foreach ($Room as $vo) {
+            if (!empty($vo['history_table_name'])) {
+                $result = Db::query("SHOW TABLES LIKE '{$vo['history_table_name']}'");
+                if ($result) {
+                    $where_array = [];
+                    if ($vo['history_table_name'] == 'game_wingo_log') {
+                        $where_array['win_status'] = ['neq', 0];
+                        $query_data = $model->table($vo['history_table_name'])
+                            ->where($where_array)
+                            ->where('created_at', 'between', [$startStampTime, $endStampTime])
+                            ->group('platform_id,merchant_id,user_id')
+                            ->field("sum(bet) bet_amount,sum(transfer) transfer,merchant_id,platform_id,user_id,count(*) bet_times")
+                            ->select();
+                    }else{
+                        $query_data = $model->table($vo['history_table_name'])
+                            ->where($where_array)
+                            ->where('created_at', 'between', [$startStampTime * 1000, $endStampTime * 1000])
+                            ->group('platform_id,merchant_id,user_id')
+                            ->field("sum(bet) bet_amount,sum(transfer) transfer,merchant_id,platform_id,user_id,count(*) bet_times")
+                            ->select();
+                    }
+                    foreach ($query_data as &$vv) {
+//                        $vv['room_id'] = $vo['id'];
+                        $vv['win_amount'] = bcadd($vv['bet_amount'], $vv['transfer']);
+                        $statistics_array[] = $vv;
+                    }
+                }
+            }
+        }
+
+        $new_data = [];
+        $list_data = [];
+        foreach ($statistics_array as $vo) {
+            $key = $vo['platform_id'] . '---' . $vo['merchant_id'] . '---' . $vo['user_id'];
+            $new_data[$key][] = $vo;
+
+        }
+        foreach ($new_data as $vo) {
+            $this_data = [
+                'bet_amount' => 0,
+                'transfer' => 0,
+                'merchant_id' => 0,
+                'platform_id' => 0,
+                'user_id' => 0,
+                'bet_times' => 0,
+                'win_amount' => 0,
+            ];
+            foreach ($vo as $vv) {
+                $this_data['bet_amount'] += $vv['bet_amount'];
+                $this_data['transfer'] += $vv['transfer'];
+                $this_data['bet_times'] += $vv['bet_times'];
+                $this_data['win_amount'] += $vv['win_amount'];
+                $this_data['platform_id'] = $vv['platform_id'];
+                $this_data['merchant_id'] = $vv['merchant_id'];
+                $this_data['user_id'] = $vv['user_id'];
+            }
+            $list_data[] = $this_data;
+        }
+        $output->writeln('statistics statistic Crontab job start;' . date('Y-m-d H:i:s', time()));
+        $this->update_data($list_data, $yesterday);
+        $output->writeln('statistics statistic Crontab job end;' . date('Y-m-d H:i:s', time()));
+
+    }
+
+    public function update_data($new_list, $yesterday)
+    {
+        foreach ($new_list as $vo) {
+            $save_data = [
+                'bet_amount' => $vo['bet_amount'],//押注
+                'win_amount' => $vo['win_amount'],//赢金
+                'bet_times' => $vo['bet_times'],//押注次数
+                'transfer' => $vo['transfer'],//净输赢
+            ];
+            $this_data = UserDailyStatisticsModel::where('date_time', $yesterday)
+                ->where('platform_id', $vo['platform_id'])
+                ->where('merchant_id', $vo['merchant_id'])
+                ->where('user_id', $vo['user_id'])
+                ->find();
+            if (!empty($this_data)) {
+                (new UserDailyStatisticsModel())->where('date_time', $yesterday)
+                    ->where('platform_id', $vo['platform_id'])
+                    ->where('merchant_id', $vo['merchant_id'])
+                    ->where('user_id', $vo['user_id'])
+                    ->update($save_data);
+            } else {
+                $save_data['date_time'] = $yesterday;
+                $save_data['platform_id'] = $vo['platform_id'];
+                $save_data['merchant_id'] = $vo['merchant_id'];
+                $save_data['user_id'] = $vo['user_id'];
+                (new UserDailyStatisticsModel())->insert($save_data);
+            }
+        }
+    }
+
+
+}

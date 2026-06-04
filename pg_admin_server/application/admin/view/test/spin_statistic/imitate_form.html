@@ -1,0 +1,555 @@
+<script src="../../../../../public/assets/libs/bootstrap-select/dist/js/bootstrap-select.js"></script>
+
+<form id="add-form" class="form-horizontal" role="form">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">模拟客户端返奖</h3>
+        </div>
+        <div class="panel-body">
+
+            <div>
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('operator_token')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <input class="form-control" spellcheck="false" v-model="form.operator_token" type="text">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('secret')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <input class="form-control" spellcheck="false" v-model="form.secret" type="text">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('user_id')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <input class="form-control" v-model="form.user_id" type="text">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('user_name')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <input class="form-control" v-model="form.user_name" type="text">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('rtp')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <input class="form-control" v-model="form.rtp" type="text">
+                    </div>
+                </div>
+
+                <div class="form-group layer-footer">
+                    <label class="control-label col-xs-12 col-sm-3"></label>
+                    <div class="col-xs-12 col-sm-8">
+                        <button type="button" class="btn btn-success btn-embossed" @click="CreateUser()">{:__('创建用户')}
+                        </button>
+                        <button type="button" class="btn btn-success btn-embossed" v-if="user_id" @click="GetUserInfo()">{:__('获取用户信息')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="user_id">
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('游戏类型')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <select class="selectpicker show-tick form-control" required data-live-search="true"
+                            v-model="form.type_index" @change="GetGames()">
+                            <!-- <option value="">请选择房间</option> -->
+                            <option :value="index" v-for="(item_type, index) in item_types">{{item_type}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('语言')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <select class="selectpicker show-tick form-control" required data-live-search="true" v-model="language">
+                            <!-- <option value="">请选择房间</option> -->
+                            <option :value="k" v-for="(language, k) in languages">{{language}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('游戏')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <select class="selectpicker show-tick form-control" required data-live-search="true" v-model="game_code">
+                            <!-- <option value="">请选择房间</option> -->
+                            <option :value="game.code"  v-for="game in game_list">{{game.name}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group layer-footer">
+                    <label class="control-label col-xs-12 col-sm-3"></label>
+                    <div class="col-xs-12 col-sm-8">
+                        <button type="button" class="btn btn-success btn-embossed" @click="GameUrl()">{:__('打开游戏')}
+                        </button>
+                        <button type="button" class="btn btn-success btn-embossed" v-if="user_id" @click="GameLauchUrl('formName')">{:__('获取游戏打开html')}
+                        </button>
+                    </div>
+                </div>
+
+                <iframe v-show="showIframe" id="myFrame" width="399" height="599"></iframe>
+            </div>
+
+            <div v-if="user_id">
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('rtp')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <input class="form-control" v-model="form.rtp" type="text">
+                    </div>
+                </div>
+                
+                <div class="form-group layer-footer">
+                    <label class="control-label col-xs-12 col-sm-3"></label>
+                    <div class="col-xs-12 col-sm-8">
+                        <button type="button" class="btn btn-success btn-embossed" @click="SetUserRtp()">{:__('设置rtp')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="user_id">
+                <div class="form-group">
+                    <label class="control-label col-xs-3 col-sm-3">{:__('设置局数')}:</label>
+                    <div class="col-xs-3 col-sm-3">
+                        <input class="form-control" v-model="nums" type="text">
+                    </div>
+                </div>
+                
+                <div class="form-group layer-footer">
+                    <label class="control-label col-xs-12 col-sm-3"></label>
+                    <div class="col-xs-12 col-sm-8">
+                        <button type="button" class="btn btn-success btn-embossed" @click="StartData()">{:__('数据开跑')}
+                        </button>
+                        <button type="button" v-if="showGetResult" class="btn btn-warning btn-embossed" @click="GetResults()">{:__('获取结果')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script src="/assets/js/vue.js"></script>
+<script src="/assets/js/md5.js"></script>
+<script src="/assets/js/axios.min.js"></script>
+
+<script>
+
+    var loadingIndex;
+    var intervalKey; //轮询key
+    var app = new Vue({
+        el: '#add-form',
+        data() {
+            return {
+                form: {
+                    operator_token: '1lhdibfzzepmviiyfsfdqeu2nzw2jhc2',
+                    secret: 'uvtkutdjkdxzqpabe026o7fmrianmo_z',
+                    user_id: '',
+                    user_name: '',
+                    ts: 0,
+                    sign: '',
+                    type_index: 2, //pg
+                    type: 'pg', //pg
+                    rtp: 0
+                },
+                user_id: '',
+                user_token: '',
+                game_code: '',
+                language: 'pt',
+                game_types_list: {$game_types_list},
+                game_list: [],
+                showIframe: false,
+                //跑数据局数
+                nums: 1,
+                //游戏类型
+                item_types: JSON.parse('{:json_encode(config("constant.game_types"))}'),
+                //语言
+                languages: JSON.parse('{:json_encode(config("constant.languages"))}'),
+                //线上版本设置空
+                prefixUrl: '{:config("constant.prefixUrl")}',
+
+                showGetResult: true,
+                //执行结果
+                run_result: {
+                    id: null,
+                },
+                get_result: {
+                    rtp: '',
+                },
+
+                table_data: [
+                ],
+
+                //验证表单
+                ruleForm: {
+                    game_code: '',
+                },
+                rules: {
+                    game_code: [
+                        { required: true, message: '请选择游戏', trigger: 'change' }
+                    ]
+                }
+            }
+        },
+        created: function () {
+            this.GetGames();
+        },
+        computed: {
+
+        },
+        methods: {
+            CreateUrl(uri) {
+                return this.prefixUrl + uri;
+            },
+            CreateUser() {
+                if (!this.form.user_id || !this.form.user_name) {
+                    layer.msg('请填写user_id和user_name', {icon:2});
+                    return;
+                }
+
+                this.form.ts = Math.floor(Date.now() / 1000);
+                let data = {
+                    operator_token: this.form.operator_token,
+                    rtp: this.form.rtp * 1,
+                    ts: this.form.ts,
+                    user_id: this.form.user_id,
+                    user_name: this.form.user_name,
+                    key: this.form.secret
+                };
+                data.sign = md5(new URLSearchParams(data).toString());
+                delete data.key;
+
+                loadingIndex = layer.msg('加载中', {icon: 16,shade: 0.01});
+                axios.post(this.CreateUrl('/api/web/user_session'), data).then(res => {
+                    const res_data = res.data.data;
+
+                    if (res.data.code != 0) {
+                        layer.close(loadingIndex);
+                        layer.msg('创建用户失败：' + res.data.message, {icon:2});
+                        return;
+                    }
+                    layer.close(loadingIndex);
+                    layer.msg('创建用户成功', {icon:1});
+                    this.user_id = res_data.user_id;
+                    this.user_token = res_data.token;
+                    this.form.rtp = res_data.rtp;
+                }).catch(err => {
+                    layer.close(loadingIndex);
+                    layer.msg('创建用户请求失败:' + err.message || '', {icon:2});
+                });
+            },
+
+            GetGames() {
+                this.game_list = this.game_types_list[this.form.type_index] || [];
+                this.form.type = this.item_types[this.form.type_index];
+                /* this.form.ts = Math.floor(Date.now() / 1000);
+                let data = {
+                    operator_token: this.form.operator_token,
+                    ts: this.form.ts,
+                    type: this.form.type,
+                    key: this.form.secret,
+                };
+                data.sign = md5(new URLSearchParams(data).toString())
+                delete data.key;
+
+                axios.post(this.CreateUrl('/api/web/game_list'), data).then(res => {
+                    let res_data = res.data.data
+
+                    if (res.data.code != 0) {
+                        layer.msg('失败', {icon:2});
+                        return;
+                    }
+
+                    this.game_list = res_data
+                }).catch(err => {
+                    layer.msg('失败', {icon:2});
+                }) */
+            },
+
+            //显示游戏名
+            doGameList(code) {
+                const item = this.game_list.find(item => item.code == code);
+                return item ? item.name : code;
+            },
+
+            GameUrl() {
+                if (!this.user_id || !this.user_token) {
+                    layer.msg('请先创建用户', {icon:2});
+                    return;
+                }
+
+                if (!this.game_code) {
+                    layer.msg('请选择游戏', {icon:2});
+                    return;
+                }
+
+                this.form.ts = Math.floor(Date.now() / 1000);
+                let data = {
+                    game_code: this.game_code,
+                    language: this.language,
+                    operator_token: this.form.operator_token,
+                    ts: this.form.ts,
+                    type: this.form.type,
+                    user_id: this.user_id,
+                    user_token: this.user_token,
+                    key: this.form.secret
+                };
+                // console.log('data', data);
+
+                data.sign = md5(new URLSearchParams(data).toString())
+                delete data.key
+
+                axios.post(this.CreateUrl('/api/web/game_url'), data).then(res => {
+                    let res_data = res.data.data
+
+                    if (res.data.code != 0) {
+                        layer.msg('失败', {icon:2});
+                        return;
+                    }
+                    layer.msg('打开新页面', {icon:1});
+                    console.log('res_data.url', res_data.url);
+                    window.open(res_data.url, "blank")
+                }).catch(err => {
+                    layer.msg('失败', {icon:2});
+                })
+            },
+
+            GameLauchUrl(formName) {
+                if (!this.user_token || !this.user_id) {
+                    layer.msg('请先创建用户', {icon:2});
+                    return
+                }
+
+                if (!this.game_code) {
+                    layer.msg('请选择游戏', {icon:2});
+                    return;
+                }
+
+                /* this.$refs[formName].validate((valid) => {
+                    if (!valid) {
+                        layer.msg('请填写完整表单', {icon:2});
+                        return false;
+                    }
+                }) */
+
+                this.form.ts = Math.floor(Date.now() / 1000)
+                let data = {
+                    game_code: this.game_code,
+                    language: this.language,
+                    operator_token: this.form.operator_token,
+                    ts: this.form.ts,
+                    type: this.form.type,
+                    user_id: this.user_id,
+                    user_token: this.user_token,
+                    key: this.form.secret,
+                }
+                console.log('data', data);
+                data.sign = md5(new URLSearchParams(data).toString())
+                delete data.key
+
+                axios.post(this.CreateUrl('/api/web/get_launch_url'), data).then(res => {
+                    this.showIframe = true
+                    let res_data = res.data.data
+                    console.log('res_data', res_data)
+
+                    const iframe = document.getElementById("myFrame");
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+                    iframeDoc.open();
+                    iframeDoc.write(res.data);
+                    iframeDoc.close();
+
+                }).catch(err => {
+                    layer.msg('失败', {icon:2});
+                })
+            },
+
+            GetUserInfo() {
+                this.form.ts = Math.floor(Date.now() / 1000);
+                let data = {
+                    operator_token: this.form.operator_token,
+                    ts: this.form.ts,
+                    user_id: this.user_id,
+                    key: this.form.secret,
+                }
+                data.sign = md5(new URLSearchParams(data).toString())
+                delete data.key
+
+                loadingIndex = layer.msg('加载中', { icon: 16, shade: 0.01 });
+                axios.post(this.CreateUrl('/api/web/user_info'), data).then(res => {
+                    let res_data = res.data.data
+
+                    if (res.data.code != 0) {
+                        layer.close(loadingIndex);
+                        layer.msg('失败', {icon:2});
+                        return;
+                    }
+
+                    layer.close(loadingIndex);
+                    layer.alert(JSON.stringify(res_data));
+                    this.form.rtp = res_data.rtp
+
+                }).catch(err => {
+                    layer.close(loadingIndex);
+                    layer.msg('失败', {icon:2});
+                })
+            },
+
+            SetUserRtp() {
+                if (this.form.rtp > 300) {
+                    layer.msg('rtp不能大于300', {icon:2});
+                    return;
+                }
+
+                this.form.ts = Math.floor(Date.now() / 1000);
+                let data = {
+                    operator_token: this.form.operator_token,
+                    rtp: this.form.rtp * 1,
+                    ts: this.form.ts,
+                    user_id: this.form.user_id,
+                    key: this.form.secret,
+                }
+                data.sign = md5(new URLSearchParams(data).toString())
+                delete data.key
+
+                axios.post(this.CreateUrl('/api/web/set_user_rtp'), data).then(res => {
+                    let res_data = res.data.data
+
+                    if (res.data.code != 0) {
+                        layer.msg('失败', {icon:2});
+                        return;
+                    }
+
+                    layer.msg("设置成功，档位：" + res_data.rtp, {icon:1});
+                    this.form.rtp = res_data.rtp
+
+                }).catch(err => {
+                    layer.msg('失败', {icon:2});
+                })
+            },
+
+            StartData() {
+                if (!this.user_id || !this.user_token) {
+                    layer.msg('请先创建用户', {icon:2});
+                    return;
+                }
+
+                if (!this.game_code) {
+                    layer.msg('请选择游戏', {icon:2});
+                    return;
+                }
+
+                this.form.ts = Math.floor(Date.now() / 1000);
+                let data = {
+                    game_code: this.game_code,
+                    language: this.language,
+                    operator_token: this.form.operator_token,
+                    ts: this.form.ts,
+                    type: this.form.type,
+                    user_id: this.user_id,
+                    user_token: this.user_token,
+                    key: this.form.secret
+                };
+                console.log('data', data);
+
+                data.sign = md5(new URLSearchParams(data).toString())
+                delete data.key
+
+                loadingIndex = layer.msg('加载中', { icon: 16, shade: 0.01 });
+                axios.post(this.CreateUrl('/api/web/game_url'), data).then(async res => {
+                    let res_data = res.data.data
+
+                    if (res.data.code != 0) {
+                        layer.close(loadingIndex);
+                        layer.msg('失败', {icon:2});
+                        return;
+                    }
+                    /* this.$message.error('打开新页面');
+                    console.log('res_data.url', res_data.url);
+                    window.open(res_data.url, "blank") */
+
+                    const gameUrl = res_data.url;
+                    const run = await axios.post('imitatePost', { game_url: gameUrl, nums: this.nums, user_id: this.user_id, rtp: this.form.rtp, type_id: this.form.type_index });
+                    if (run.data.code != 0) {
+                        layer.close(loadingIndex);
+                        layer.msg('失败：' + run.data.message, {icon:2});
+                        return;
+                    } else {
+                        this.run_result = run.data.data;
+                        this.showGetResult = false;
+                        layer.close(loadingIndex);
+                        layer.msg('执行成功，请勿刷新页面，稍后点击获取结果按钮', {icon:1});
+
+                        //开始轮询
+                        let run_num = 0;
+                        intervalKey = setInterval(async () => {
+                            if (run_num > 90) { //最多轮询3分钟
+                                clearInterval(intervalKey);
+                                layer.msg('轮询超时，请刷新表格获取结果', {icon:2}, 2000);
+                                run_num = 0;
+                                return;
+                            }
+                            const poll = await axios.get('pollStatus?id=' + this.run_result.id);
+                            if (poll.data.data.status == 1) {
+                                this.showGetResult = true;
+                                layer.msg('数据跑取完成，请点击获取结果按钮', {icon: 1}, 2000);
+                                clearInterval(intervalKey);
+                                return;
+                            }
+                            run_num +=  1;
+                        }, 2000);
+
+                    }
+
+                }).catch(err => {
+                    layer.close(loadingIndex);
+                    layer.msg('失败', {icon:2});
+                })
+            },
+
+            GetResults() {
+                if (!this.run_result.id) {
+                    layer.msg('请先执行跑数据', {icon:2});
+                    return;
+                }
+
+                layer.open({
+                    type: 2,
+                    title: '获取结果',
+                    shadeClose: true,
+                    area: ['950px', '950px'],
+                    content: 'getResult?id=' + this.run_result.id
+                });
+                // this.run_result.id = 9;
+                /* if (!this.run_result.id) {
+                    layer.msg('请先执行跑数据', {icon:2});
+                    return;
+                }
+
+                axios.get('getResult?id=' + this.run_result.id).then(res => {
+                    if (res.data.code != 0) {
+                        layer.msg('获取结果失败:' + res.data.message, {icon:2});
+                        return;
+                    }
+                    this.showGetResult = true;
+                    const res_data = res.data.data;
+                    this.get_result = res_data;
+                    this.table_data = res_data.result;
+                }).catch(err => {
+                    layer.msg('获取结果失败:' + err.message, {icon:2});
+                }) */
+            }
+        }
+    });
+</script>

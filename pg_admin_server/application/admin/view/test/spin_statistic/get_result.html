@@ -1,0 +1,35 @@
+<link rel="stylesheet" href="/assets/css/bootstrap.css">
+<link rel="stylesheet" href="/assets/css/bootstrap-table.css">
+
+<div style="margin: 10px auto; width: 50%;font-size: 15px;" >
+    <div>
+        <p>游戏类型【{$data.type_id}】-【{$data.game_name}】-当前设置RTP【{$data.rtp}】</p>
+        <p>设置局数：{$data.nums}</p>
+        <p>实际局数：{$data.sus}</p>
+        <p>赢局：{$data.win}</p>
+        <p>输局：{$data.lose}</p>
+        <p>倍率详情</p>
+    </div>
+    
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">倍率</th>
+                <th scope="col">局数</th>
+                <th scope="col">占比</th>
+            </tr>
+        </thead>
+        <tbody>
+            {foreach $data.result as $row}
+            <tr>
+                <td>{$row.rate}</td>
+                <td>{$row.nums}</td>
+                <td>{$row.percent}</td>
+            </tr>
+            {/foreach}
+        </tbody>
+    </table>
+</div>
+    
+
+        

@@ -1,0 +1,161 @@
+<script src="../../../../../public/assets/libs/bootstrap-select/dist/js/bootstrap-select.js"></script>
+
+<form id="add-form" class="form-horizontal" role="form">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">生成返奖</h3>
+        </div>
+        <div class="panel-body">
+            <div class="form-group">
+                <label class="control-label col-xs-3 col-sm-3">{:__('选择房间')}:</label>
+                <div class="col-xs-3 col-sm-3">
+                    <select class="selectpicker show-tick form-control" name="room_id" required data-live-search="true"
+                            v-model="room_id" @change="handleChange()">
+                        <option value="">请选择房间</option>
+                        <option :value="item.id" v-for="(item,index) in room_list" :key="index">{{item.name}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-xs-3 col-sm-3">{:__('请选择rtp')}:</label>
+                <div class="col-xs-3 col-sm-3">
+                    <select class="selectpicker show-tick form-control" name="rtp_id" required data-live-search="true"
+                            v-model="rtp_id">
+                        <option value="">请选择rtp</option>
+                        <option :value="item.id" v-for="(item,index) in rtp_list" :key="index">{{item.name}}</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="control-label col-xs-3 col-sm-3">{:__('选择押注')}:</label>
+                <div class="col-xs-3 col-sm-3">
+                    <select class="selectpicker show-tick form-control" name="room_id" required data-live-search="true"
+                            v-model="bet_amount">
+                        <option value="">请选择押注</option>
+                        <option :value="item.bet_amount" v-for="(item,index) in room_config_list" :key="index">
+                            {{item.bet_amount}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <label class="control-label col-xs-3 col-sm-3">{:__('押注次数')}:</label>
+                <div class="col-xs-3 col-sm-3">
+                    <input id="c-number" class="form-control" name="row[number]" v-model="number" type="text">
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <label class="control-label col-xs-3 col-sm-3">{:__('游戏模式')}:</label>
+                <div class="col-xs-3 col-sm-3">
+                    <input id="c-type" class="form-control" name="row[type]" v-model="room_type" type="text">
+                </div>
+            </div>
+
+
+            <div class="form-group layer-footer">
+                <label class="control-label col-xs-12 col-sm-3"></label>
+                <div class="col-xs-12 col-sm-8">
+                    <button type="button" class="btn btn-primary btn-embossed" @click="click_submit()">{:__('OK')}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<script>
+    var type_id = '<?php echo $_GET["type_id"]??""; ?>'
+
+    var app = new Vue({
+        el: '#add-form',
+        data: {
+            room_type: 0,
+            room_list: [],
+            rtp_list: [],
+            room_config_list: [],
+            room_id: '',
+            bet_amount: '',
+            number: '',
+            rtp_id: '',
+        },
+        mounted() {
+            this.RoomList();
+        },
+        methods: {
+            RoomList() {
+                this.ajaxStop();
+                let that = this
+                $.ajax({
+                    url: "{:url('room_name2')}",
+                    data: {type_id:type_id},
+                    type: 'get',
+                    success: function (res) {
+                        that.room_list = res.room;
+                        that.rtp_list = res.rtps;
+                    }
+                })
+            },
+            handleChange() {
+                let that = this
+                that.bet_amount = '';
+                that.number = '';
+                that.handleChange2();
+            },
+            handleChange2() {
+                let that = this
+                $.ajax({
+                    url: "{:url('room_config')}",
+                    type: 'get',
+                    data: {
+                        room_id: that.room_id,
+                    },
+                    success: function (res) {
+                        that.room_config_list = res;
+                    }
+                })
+                that.bet_amount = '';
+                that.number = '';
+            },
+            click_submit() {
+                this.ajaxStop();
+                let that = this
+                $.ajax({
+                    url: "{:url('api_post')}",
+                    type: 'post',
+                    data: {
+                        room_id: that.room_id,
+                        bet_amount: that.bet_amount,
+                        number: that.number,
+                        room_type: that.room_type,
+                        rtp_id: that.rtp_id,
+                    },
+                    success: function (res) {
+                        if (res.code === 0) {
+                            layer.msg(res.msg);
+                        } else {
+                            window.location.reload()
+                        }
+                        console.log(res)
+                    }
+                })
+            },
+            ajaxStop() {
+                var index = layer.msg('加载中', {icon: 16, shade: 0.3, time: 0});
+                $(document).ajaxStop(function () {
+                    // 表格数据加载完成
+                    layer.close(index)
+                });
+            }
+
+        }
+    })
+</script>

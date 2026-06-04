@@ -1,0 +1,15 @@
+<form id="edit-form" class="form-horizontal" role="form" data-toggle="validator" method="POST" action="">
+
+    <div class="form-group">
+        <label class="control-label col-xs-4 col-sm-4">{:__('预设开奖号码')}:</label>
+        <div class="col-xs-7 col-sm-7">
+            <input id="c-number_pre" data-rule="required" min="0" class="form-control" name="row[number_pre]" type="number" value="{$row.number_pre|htmlentities}">
+        </div>
+    </div>
+    <div class="form-group layer-footer">
+        <label class="control-label col-xs-4 col-sm-4"></label>
+        <div class="col-xs-7 col-sm-7">
+            <button type="submit" class="btn btn-primary btn-embossed disabled">{:__('OK')}</button>
+        </div>
+    </div>
+</form>

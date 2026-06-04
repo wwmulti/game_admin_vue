@@ -1,0 +1,22 @@
+<div class="panel panel-default panel-intro">
+    <div class="panel-body">
+        <div id="myTabContent" class="tab-content">
+            <div class="tab-pane fade active in" id="one">
+                <div class="widget-body no-padding">
+                    <div id="toolbar" class="toolbar">
+                        {:build_toolbar('refresh,add,edit,del')}
+                        <a href="javascript:;" class="btn btn-success btn-disabled disabled btn-batch_updates {:$auth->check('room/room/batch_updates')?'':'hide'}" title="{:__('批量修改分类')}" style="background: #009bea;margin-left: 5px"><i class="fa fa-pencil"></i> {:__('批量修改分类')}</a>
+
+                        <a href="javascript:;" data-url="room/room/api_post"  data-area='["50%", "70%"]' class="btn btn-success btn-dialog {:$auth->check('room/room/api_post')?'':'hide'}" title="{:__('配置刷新')}" ><i class="fa fa-gears"></i> 配置刷新</a>
+
+                    </div>
+                    <table id="table" class="table table-striped table-bordered table-hover table-nowrap"
+                           data-operate-edit="{:$auth->check('room/room/edit')}"
+                           data-operate-del="{:$auth->check('room/room/del')}"
+                           width="100%">
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

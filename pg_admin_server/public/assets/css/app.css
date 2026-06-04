@@ -1,0 +1,412 @@
+@font-face {
+    font-family: iconweb;
+    src: url("./font/font_iconweb.woff2") format("woff2")
+}
+
+
+.iconweb {
+    font-family: iconweb !important;
+    font-size: 16px;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale
+}
+.iconweb-yonghu:before {
+    content: "\E650"
+}
+.iconweb-mima:before {
+    content: "\E653"
+}
+.iconweb-yanzhengma:before {
+    content: "\E65C"
+}
+.iconweb-tishiicon:before {
+    content: "\E662"
+}
+.iconweb-bukejianmima:before {
+    content: "\E652"
+}
+
+@media (max-width:850px) {
+    .es-page .es-body .es-content{
+        width: 100% !important;
+    }
+    .es-login-style1{
+        width: 100% !important;
+    }
+    .es-login-style1-left{
+        display: none !important;
+    }
+}
+#app, body, html {
+    height: 100%
+}
+
+.es-page {
+    height: 100%;
+    overflow-y: auto
+}
+
+
+.es-page .es-body {
+    width: 100%;
+    min-height: calc(100vh - 124px);
+    position: relative
+}
+
+.es-page .es-body .es-content {
+    width: 1200px;
+    margin: auto
+}
+
+
+.flex1 {
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1
+}
+
+.base-img-style1 {
+    background-size: 100% 100%
+}
+
+.login-body {
+    height: 100vh;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    padding-top: 155px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box
+}
+
+.login-body::-webkit-scrollbar {
+    width: 0 !important
+}
+
+.es-login-style1 {
+    width: 1062px;
+    height: 670px;
+    margin: 0 auto;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center
+}
+
+.es-login-style1 .es-login-style1-left {
+    width: 594px;
+    height: 585px;
+    border-radius: 20px 0 0 20px;
+    padding: 77px 101px 66px 53px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    background-size: 100% 100%
+}
+
+
+.es-login-style1 .title {
+    font-size: 40px;
+    line-height: 58px;
+    color: #fff
+}
+
+.es-login-style1 .subtitle {
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 28px;
+    color: hsla(0, 0%, 100%, .64);
+    margin-top: 26px
+}
+
+.es-login-style1 .style1-login {
+    width: 468px;
+    height: 670px;
+    background: #fff;
+    border-radius: 20px;
+    position: relative;
+    padding: 67px 34px 38px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    text-align: center
+}
+
+.es-login-style1 .style1-login .style1-login-title {
+    color: #333;
+    font-size: 32px;
+    line-height: 45px;
+    font-weight: 600;
+    margin-bottom: 43px;
+    text-align: center
+}
+.es-forget-style1 .title{
+    font-size: 40px;
+    line-height: 58px;
+    color: #fff
+}
+.es-forget-style2 .title{
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 59px;
+    color: #fff
+}
+.es-login-style2 .subtitle {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 22px;
+    color: hsla(0, 0%, 100%, .64)
+}
+.ivu-form-item {
+    margin-bottom: 24px;
+    vertical-align: top;
+    zoom: 1
+}
+.ivu-form-item-content {
+    position: relative;
+    line-height: 32px;
+    font-size: 14px
+}
+
+.ivu-form-item .ivu-form-item {
+    margin-bottom: 0
+}
+
+.ivu-form-item .ivu-form-item .ivu-form-item-content {
+    margin-left: 0 !important
+}
+.ivu-form-item-error .style-input {
+    border: 1px solid #ff869c
+}
+
+.style-input {
+    background: #f9fbff;
+    border: 1px solid #ecf0f8;
+    border-radius: 6px;
+    width: 100%;
+    height: 60px;
+    margin: 0 auto;
+    padding: 14px 0;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center
+}
+
+.style-input .input-logo {
+    width: 57px;
+    border-right: 1px solid #e3e9f3;
+    text-align: center
+}
+
+.style-input .input-password-logo {
+    width: 57px
+}
+
+.style-input .ivu-input {
+    font-size: 16px;
+    background: transparent;
+    border: none !important;
+    color: #495060;
+    padding: 0 16px
+}
+
+.style-input .ivu-input::-webkit-input-placeholder {
+    color: #ccc
+}
+
+.style-input .ivu-input::-moz-placeholder {
+    color: #ccc
+}
+
+.style-input .ivu-input::-ms-input-placeholder {
+    color: #ccc
+}
+
+.style-input .ivu-input-icon-normal {
+    display: none
+}
+
+.style-input .input-logo {
+    width: 57px;
+    height: 32px;
+    border-right: 1px solid #e3e9f3
+}
+.style-input .input-logo .iconweb {
+    font-size: 25px
+}
+.iconweb {
+    color: #abb5c9;
+    font-size: 25px
+}
+
+.input-password-logo {
+    text-align: center
+}
+
+.input-password-logo .iconweb {
+    color: #abb5c9;
+    font-size: 16px
+}
+
+.account-input {
+    border-radius: 4px
+}
+
+.account-input .ivu-input-icon {
+    margin-top: 6px;
+    font-size: 22px;
+    color: #eee;
+    cursor: pointer
+}
+
+.account-input .ivu-input-icon:hover {
+    color: #999
+}
+
+.account-input .ivu-input {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    height: 44px;
+    line-height: 44px;
+    font-size: 14px;
+    color: #333;
+    padding: 0 12px;
+    outline: none !important
+}
+
+.account-input .ivu-input:focus {
+    border: 1px solid var(--primary, #fb6638)
+}
+
+.account-input .ivu-form-item.ivu-form-item-error .ivu-input {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    outline: none !important
+}
+.style-input .ivu-input {
+    font-size: 16px;
+    background: transparent;
+    border: none !important;
+    color: #495060;
+    padding: 0 16px
+}
+
+.ivu-input {
+    font-size: 14px;
+    color: #999;
+    border: 1px solid #eee;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    outline: none
+}
+
+.ivu-input {
+    display: inline-block;
+    width: 100%;
+    height: 32px;
+    line-height: 1.5;
+    padding: 4px 7px;
+    font-size: 14px;
+    border: 1px solid #dcdee2;
+    border-radius: 4px;
+    color: #515a6e;
+    background-color: #fff;
+    background-image: none;
+    position: relative;
+    cursor: text;
+    transition: border .2s ease-in-out, background .2s ease-in-out, box-shadow .2s ease-in-out
+}
+
+.ivu-input::-moz-placeholder {
+    color: #c5c8ce;
+    opacity: 1
+}
+
+.ivu-input:-ms-input-placeholder {
+    color: #c5c8ce
+}
+
+.ivu-input::-webkit-input-placeholder {
+    color: #c5c8ce
+}
+
+.ivu-input:focus, .ivu-input:hover {
+    border-color: #57a3f3
+}
+
+.ivu-input:focus {
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(45, 140, 240, .2)
+}
+.style-operation {
+    width: 100%;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    color: #333;
+    font-size: 14px;
+    margin: 41px 0 16px
+}
+.style-operation {
+    width: 100%;
+    height: 57px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    margin: 0 auto;
+    color: #333;
+    font-size: 14px
+}
+
+.style-login-botton {
+    width: 100%;
+    height: 60px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 20px;
+    margin: 0 auto
+}
+
+.account-btn {
+    width: 310px;
+    height: 44px;
+    color: #fff !important;
+    font-size: 14px;
+    background-color: var(--primary, #fb6638);
+    border: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    outline: none !important
+}
+
+.account-btn:hover {
+    background-color: var(--primary-hover, #f75726)
+}

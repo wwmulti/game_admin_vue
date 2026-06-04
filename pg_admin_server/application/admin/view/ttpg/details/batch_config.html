@@ -1,0 +1,33 @@
+<form id="add-form" class="form-horizontal" role="form" data-toggle="validator" method="POST" action="">
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('选择分组')}:</label>
+        <div class="col-xs-12 col-sm-8">
+
+            <select id="c-reward_id" class="form-control selectpicker" name="row[reward_id]">
+                {foreach name="list" item="vo"}
+                <option value="{$vo['id']}" >{$vo['name']}</option>
+                {/foreach}
+            </select>
+        </div>
+    </div>
+    <div class="form-group layer-footer">
+        <label class="control-label col-xs-12 col-sm-2"></label>
+        <div class="col-xs-12 col-sm-8">
+            <button type="submit" class="btn btn-primary btn-embossed disabled">{:__('OK')}</button>
+        </div>
+    </div>
+</form>
+
+
+<script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+<script>
+    $(function () {
+        $('#checkall').change(function(){
+            if(this.checked) {
+                $('.checkbox-group').prop('checked', true);
+            } else {
+                $('.checkbox-group').prop('checked', false);
+            }
+        });
+    })
+</script>
