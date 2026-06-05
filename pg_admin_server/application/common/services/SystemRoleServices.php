@@ -109,7 +109,7 @@ class SystemRoleServices
     public function verifiAuth($rule, $adminId)
     {
         $auth = new Auth();
-        if (in_array($rule, ['system/menus'])) return true;
+        if (in_array($rule, ['system/menus', 'auth/system/menus'])) return true;
         if ($auth->isSuperAdmin($adminId)) return true;
         return $auth->check($rule, $adminId, 'or', 'url', true);
     }

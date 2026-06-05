@@ -251,7 +251,8 @@ class Backend extends Controller
         if (!\think\Request::instance()->isCli()) {
             $controller = strtolower(request()->controller());
             $action = strtolower(request()->action());
-            $rule = $controller . '/' . $action;
+            // $rule = $controller . '/' . $action;
+            $rule = str_replace('.', '/', $controller) . '/' . $action;
             if (!in_array($rule, $this->notLoginApi)) {
                 $authHeader = request()->header('Authorization');
                 if (!$authHeader) {

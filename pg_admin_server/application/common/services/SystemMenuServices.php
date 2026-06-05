@@ -25,7 +25,6 @@ class SystemMenuServices
             $this->cacheMenusTree($authMenus, $adminId);
         }
 
-
         $authMenus = $this->filterMenus($authMenus, $auth, $adminId);
 
         return $authMenus;
@@ -103,7 +102,8 @@ class SystemMenuServices
     {
         $filteredMenus = [];
         foreach ($menus as $menu) {
-            if ($adminId == 1 || $auth->check($menu['name'], $adminId)) {
+            // if ($adminId == 1 || $auth->check($menu['name'], $adminId)) {
+            if ($adminId == 1 || $auth->check($menu['uri'], $adminId)) { // name被替换了，用uri代替
                 if (isset($menu['children']) && !empty($menu['children'])) {
                     $menu['children'] = $this->filterMenus($menu['children'], $auth, $adminId);
                 }

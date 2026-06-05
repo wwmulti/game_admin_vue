@@ -124,7 +124,7 @@ class System extends Backend
             'pid' => $pid,
             'title' => request()->post('title', '', 'strip_tags'),
             'name' => request()->post('uri', '', 'strip_tags'),
-            'icon' => request()->post('icon', '', 'strip_tags'),
+            'icon' => $ismenu ? request()->post('icon', '', 'strip_tags') : '',
             'weigh' => request()->post('sort', 0, 'intval'),
             'ismenu' => $ismenu,
             'status' => $status ? 'normal' : 'disabled',
@@ -366,7 +366,7 @@ class System extends Backend
             $condition['title'] = ['like', '%'. $title .'%'];
         }
         if (!empty($username)) {
-            $condition['username'] = $username;
+            $condition['username'] = ['like', '%' . $username . '%'];
         }
         if (!empty($url)) {
             $condition['url'] = $url;
@@ -443,16 +443,16 @@ class System extends Backend
             $condition['a.id'] = $id;
         }
         if (!empty($username)) {
-            $condition['username'] = $username;
+            $condition['username'] = ['like', '%'. $username .'%'];
         }
         if (!empty($nickname)) {
-            $condition['nickname'] = $nickname;
+            $condition['nickname'] = ['like', '%'. $nickname .'%'];
         }
         if (!empty($status)) {
             $condition['status'] = $status;
         }
         if (!empty($startDate) && !empty($endDate)) {
-            $condition['createtime'] = [['>=', strtotime($startDate)], ['<', strtotime('+1days', strtotime($endDate))]];
+            $condition['a.createtime'] = [['>=', strtotime($startDate)], ['<', strtotime('+1days', strtotime($endDate))]];
         }
 
         $model = model('app\admin\model\Admin');

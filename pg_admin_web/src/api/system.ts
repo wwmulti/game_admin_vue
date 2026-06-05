@@ -126,6 +126,46 @@ export function deleteAdminItem(data: any) {
   })
 }
 
+// 管理员日志列表
+export function getAdminLog(params: any) {
+  return request.get<any>({
+    url: '/auth/system/adminlog',
+    params
+  })
+}
+
+// 删除管理员日志
+export function delAdminLog(data: any) {
+  return request.post<any>({
+    url: '/auth/system/delAdminLog',
+    data
+  })
+}
+
+// 获取个人信息
+export const getProfile = () => {
+  return request.get<any>({
+    url: '/auth/system/profile'
+  })
+}
+
+// 更新个人信息
+export const updateProfile = (data: any) => {
+  return request.post<any>({
+    url: '/auth/system/updateProfile',
+    data
+  })
+}
+
+// 上传头像
+export const uploadAvatar = (data: any) => {
+  return request.post<any>({
+    url: '/auth/system/uploadimg',
+    data,
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
 // 获取google秘钥
 export const googleKey = (params: any) => {
   return request.get<any>({
