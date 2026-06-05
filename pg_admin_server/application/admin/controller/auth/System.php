@@ -449,7 +449,7 @@ class System extends Backend
             $condition['nickname'] = ['like', '%'. $nickname .'%'];
         }
         if (!empty($status)) {
-            $condition['status'] = $status;
+            $condition['a.status'] = $status;
         }
         if (!empty($startDate) && !empty($endDate)) {
             $condition['a.createtime'] = [['>=', strtotime($startDate)], ['<', strtotime('+1days', strtotime($endDate))]];

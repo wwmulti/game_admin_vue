@@ -472,7 +472,7 @@ class Auth extends \fast\Auth
         $userRule = $this->getRuleList($adminId, $isApi);
 
         if ($isApi) {
-            $ruleList = \app\common\model\AuthRule::where($condition)->where('name', 'like', '%system%')
+            $ruleList = \app\common\model\AuthRule::where($condition)
             ->order('weigh', 'desc')
             ->select();
         } else {
@@ -487,7 +487,7 @@ class Auth extends \fast\Auth
         }
 
         foreach ($ruleList as $k => &$v) {
-            if (!in_array($v['name'], $userRule)) {
+            if (!in_array(strtolower($v['name']), $userRule)) {
                 unset($ruleList[$k]);
                 continue;
             }         
