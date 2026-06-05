@@ -37,7 +37,6 @@ class AuthRule extends Validate
      * 验证场景
      */
     protected $scene = [
-        'add'     => ['name', 'title'],
     ];
 
     public function __construct(array $rules = [], $message = [], $field = [])

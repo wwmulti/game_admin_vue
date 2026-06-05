@@ -1,0 +1,18 @@
+<form id="edit-form" class="form-horizontal" role="form" data-toggle="validator" method="POST" action="">
+    <div class="form-group">
+        <label class="control-label col-xs-3 col-sm-3">{:__('最大返奖(1000 表示 1)')}:</label>
+        <div class="col-xs-8 col-sm-8">
+            <input  class="form-control" id="max_reward" name="row[max_reward]" value="{$row.max_reward}"/>
+        </div>
+    </div>
+ 
+    <div class="form-group layer-footer">
+        <label class="control-label col-xs-3 col-sm-3"></label>
+        <div class="col-xs-8 col-sm-8">
+            <button type="submit" class="btn btn-primary btn-embossed disabled">{:__('OK')}</button>
+        </div>
+    </div>
+</form>
+<script src="/assets/libs/jquery/dist/jquery.min.js"></script>
+<script src="/assets/libs/fastadmin-layer/dist/layer.js"></script>
+

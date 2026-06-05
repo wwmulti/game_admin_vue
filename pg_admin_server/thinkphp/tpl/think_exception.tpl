@@ -68,7 +68,7 @@
                         break;
                 }
 
-                $result[] = is_int($key) ? $value : sprintf('\'%s\' => %s', htmlentities($key), $value);
+                $result[] = is_int($key) ? $value : "'{$key}' => {$value}";
             }
 
             return implode(', ', $result);
@@ -519,7 +519,7 @@
             var err_line = $('.line-' + LINE, ol[0])[0];
             err_line.className = err_line.className + ' line-error';
 
-            $.getScript('//lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/prettify/r298/prettify.min.js', function(){
+            $.getScript('//cdn.bootcss.com/prettify/r298/prettify.min.js', function(){
                 prettyPrint();
 
                 // 解决Firefox浏览器一个很诡异的问题

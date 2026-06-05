@@ -12,6 +12,8 @@ return [
     'app\command\UserDailyStatistics',
     'app\command\UserWingoDailyStatistics',
     'app\command\TtpgDailyStatistics',
+    'app\command\TtpgDailyLowRtpStatistics',
     'app\command\Action',
-	'app\command\InitMenu',
+    'app\command\GameDailyStatistics',
+    'app\command\RtpDailyStatistics',
 ];

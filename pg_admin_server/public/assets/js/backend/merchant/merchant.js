@@ -45,6 +45,20 @@ define(["jquery", "bootstrap", "backend", "table", "form"], function ($, undefin
                             formatter: Table.api.formatter.operate,
                             buttons: [
                                 {
+                                    name: "settings",
+                                    text: __(""),
+                                    title: __("配置"),
+                                    icon:'fa fa-file',
+                                    extend: 'data-area=\'["80%","95%"]\'',
+                                    classname: "btn btn-xs btn-success  btn-dialog",
+                                    //弹窗位置，//自带参数ids
+                                    url: function (row) {
+                                        return 'merchant/setting/edit/ids/'+row.id;
+                                    },
+                                    //参数回传的数据
+                                    callback: function (data) {},
+                                },
+                                {
                                     name: "edit",
                                     text: __(""),
                                     title: __("编辑"),

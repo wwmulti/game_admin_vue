@@ -90,7 +90,6 @@ class Index extends Backend
         //保持会话有效时长，单位:小时
         $keeyloginhours = 24;
         if ($this->request->isPost()) {
-			
             $username = $this->request->post('username');
             $password = $this->request->post('password', '', null);
             $keeplogin = $this->request->post('keeplogin');

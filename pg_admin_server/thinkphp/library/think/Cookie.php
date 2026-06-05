@@ -45,7 +45,7 @@ class Cookie
 
         self::$config = array_merge(self::$config, array_change_key_case($config));
 
-        if (!empty(self::$config['httponly']) && PHP_SESSION_ACTIVE != session_status()) {
+        if (!empty(self::$config['httponly'])) {
             ini_set('session.cookie_httponly', 1);
         }
 
@@ -101,26 +101,14 @@ class Cookie
         }
 
         $expire = !empty($config['expire']) ?
-            $_SERVER['REQUEST_TIME'] + intval($config['expire']) :
-            0;
+        $_SERVER['REQUEST_TIME'] + intval($config['expire']) :
+        0;
 
         if ($config['setcookie']) {
-            if (PHP_VERSION_ID >= 70300) {
-                // PHP 7.3+ 支持选项数组
-                setcookie($name, $value, array_merge([
-                    'expires'  => $expire,
-                    'path'     => $config['path'],
-                    'domain'   => $config['domain'],
-                    'secure'   => $config['secure'],
-                    'httponly' => $config['httponly']
-                ], isset($config['samesite']) ? ['samesite' => $config['samesite']] : []));
-            } else {
-                // 旧版本 PHP 使用传统参数方式
-                setcookie(
-                    $name, $value, $expire, $config['path'], $config['domain'],
-                    $config['secure'], $config['httponly']
-                );
-            }
+            setcookie(
+                $name, $value, $expire, $config['path'], $config['domain'],
+                $config['secure'], $config['httponly']
+            );
         }
 
         $_COOKIE[$name] = $value;

@@ -5,7 +5,6 @@ namespace app\admin\model;
 use app\admin\library\Auth;
 use think\Model;
 use think\Loader;
-use app\common\utils\JwtAuth;
 
 class AdminLog extends Model
 {
@@ -51,18 +50,6 @@ class AdminLog extends Model
         $admin_id = $auth->isLogin() ? $auth->id : 0;
         $username = $auth->isLogin() ? $auth->username : __('Unknown');
 
-        if (empty($admin_id)) {
-            $token = trim(ltrim(request()->param('token'), 'Bearer'));
-            $jwtAuth = new JwtAuth();
-            try {
-                $result = $jwtAuth->parseToken($token);
-                $admin_id = $result[0];
-                $username = model('\app\admin\model\Admin')->where(['id' => $admin_id])->value('username');            
-            } catch(\Exception $e) { 
-                return;    
-            }
-        }
-
         // 设置过滤函数
         request()->filter('trim,strip_tags,htmlspecialchars');
 
@@ -89,9 +76,6 @@ class AdminLog extends Model
                 $title[] = $v['title'];
             }
             $title = implode(' / ', $title);
-        }
-        if (empty($title)) {
-            $title = model('AuthRule')->where(['name' => $path])->value('title');
         }
         self::create([
             'title'     => $title,

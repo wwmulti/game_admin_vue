@@ -9,6 +9,7 @@ use app\common\controller\Backend;
 use think\exception\DbException;
 use think\response\Json;
 use app\admin\model\BetAmountConfig;
+use app\admin\service\GameFactory;
 use app\admin\service\GameService;
 use think\Db;
 use think\Env;
@@ -16,7 +17,7 @@ use think\Env;
 class SpinStatistic extends Backend
 {
 
-    protected $noNeedRight = ['room_name', 'room_config', 'imitatePost', 'pollStatus'];
+    protected $noNeedRight = ['room_name', 'room_config', 'imitatePost', 'pollStatus', 'checkGames', 'getCheckGames'];
     protected $model = null;
 
     public function _initialize()
@@ -89,7 +90,13 @@ class SpinStatistic extends Backend
 
     public function room_name()
     {
+        $type_id = $this->request->get('type_id');
+        $type_id = (int) $type_id ;
+        
         $where = [];
+        if($type_id>0){
+            $where['type_id'] = $type_id;
+        }
         $post = $this->request->post('name');
         if (!empty($post)) {
             $where['name'] = ['like', "{$post}%"];
@@ -248,6 +255,14 @@ class SpinStatistic extends Backend
             return $this->selectpage();
         }
 
+        //更新超时任务
+        $logs = Db::table('game_run_stat')->where('status', 0)->select();
+        if ($logs) {
+            foreach ($logs as $log) {
+                controller('app\backend\controller\Stat')->checkModifyStatus($log);
+            }
+        }
+
         [$where, $sort, $order, $offset, $limit] = $this->buildparams();
         $result = $gameService->getRunResultList($where, $sort, $order, $offset, $limit);        
         return json($result);
@@ -267,7 +282,8 @@ class SpinStatistic extends Backend
                 [
                     'user_id|用户ID' => 'require|number',
                     'game_url|游戏地址' => 'require',
-                    'nums|跑数据次数' => 'require|between:1,300000',
+                    'nums|局数' => 'require|between:1,500',
+                    'rounds|轮次' => 'require|between:1,10000',
                     'rtp|rtp' => 'number',
                     'type_id|游戏类型' => 'require|number',
                 ]
@@ -282,30 +298,43 @@ class SpinStatistic extends Backend
         if ($this->request->isPost()) {
 
             try {
+                //检测游戏是否开启
+                GameFactory::create($this->request->post('type_id'));
+
                 $url = $this->request->post('game_url');
                 $params = parse_url($url);
-
-                $matchs = [];
-                preg_match('/\/(\d+)\//', $params['path'], $matchs);
-                $gameCode = $matchs[1] ?? '';
-                if (!$gameCode) {
-                    throw new \Exception('game_code获取失败');
-                }
-
                 $querys = [];
                 parse_str($params['query'], $querys);
+
+                //kess类型游戏
+                if (input('post.type_id') == 5) {
+                    $gameCode = $querys['gameId'];
+                } elseif (input('post.type_id') == 11) { // PP 游戏
+                    $code = $querys['symbol'] ?? '';
+                    $game = Db::table('game_room')->where('code', $code)->find();
+                    if (!$game) {
+                        throw new \Exception('游戏不存在');
+                    }
+                    $gameCode = $game['id'];
+                } else {
+                    $matchs = [];
+                    preg_match('/\/(\d+)\//', $params['path'], $matchs);
+                    $gameCode = $matchs[1] ?? '';
+                    if (!$gameCode) {
+                        throw new \Exception('game_code获取失败');
+                    }
+                }                
+                
                 $querys['game_code'] = $gameCode;
                 $querys['user_id'] = $this->request->post('user_id');
                 $querys['nums'] = $this->request->post('nums');
+                $querys['rounds'] = $this->request->post('rounds');
                 $querys['rtp'] = $this->request->post('rtp');
                 $querys['type_id'] = $this->request->post('type_id');
-                $loginInfo = $gameService->verify($querys);
+                $querys['save_data'] = $this->request->post('save_data/a', []);
+                $querys['id'] = $this->request->post('id', 0, 'intval');
+                [$tk, $path] = $gameService->verify($querys);
 
-                if (!$loginInfo || empty($loginInfo['dt']['tk'])) {
-                    throw new \Exception('登录验证失败');
-                }
-                $tk = $loginInfo['dt']['tk'];
-                $path = $loginInfo['dt']['geu'];
                 $lastId = $gameService->runQueue($gameCode, $tk, $path, $querys);
 
                 return $this->jsonSuccess(['id' => $lastId]);
@@ -327,7 +356,7 @@ class SpinStatistic extends Backend
         try {
             $data = $gameService->getRunResult($id);
         } catch (\Exception $e) {
-            $this->error($e->getMessage());
+            return $this->jsonError($e->getMessage());
         }
         
         $this->assign('data', $data);
@@ -344,5 +373,34 @@ class SpinStatistic extends Backend
         $id = $this->request->get('id', 0, 'intval');
         $status = Db::table('game_run_stat')->where('id', $id)->value('status');
         return $this->jsonSuccess(['status' => $status]);
+    }
+
+    /**
+     * 游戏接口检测
+     */
+    public function checkGames(GameService $gameService)
+    {
+        $params = $this->request->post();
+        try {
+            $gameService->checkGamesQueue($params);
+            return $this->jsonSuccess();
+        } catch (\Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
+    }
+
+    /**
+     * 获取游戏接口检测
+     */
+    public function getCheckGames(GameService $gameService)
+    {
+        try {
+            $data = $gameService->getGameCheckResult(input('get.type', 'pg', 'trim'));
+        } catch (\Exception $e) {
+            $this->error($e->getMessage());
+        }
+
+        $this->assign('data', $data);
+        return $this->view->fetch();
     }
 }

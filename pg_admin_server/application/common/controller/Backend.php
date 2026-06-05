@@ -548,7 +548,7 @@ class Backend extends Controller
 
     /**
      * 获取数据限制的管理员ID
-     * 禁用数据限制时返回的是null`
+     * 禁用数据限制时返回的是null
      * @return mixed
      */
     protected function getDataLimitAdminIds()

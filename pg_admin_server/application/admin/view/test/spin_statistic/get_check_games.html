@@ -1,0 +1,53 @@
+<link rel="stylesheet" href="/assets/css/bootstrap.css">
+<link rel="stylesheet" href="/assets/css/bootstrap-table.css">
+
+<div style="margin: 10px auto; width: 85%;font-size: 15px;">
+    
+    <p>
+        游戏类型【<span style="color: red;font-weight: bold;">{:input('type')}</span>】还有【<span style="color: red;font-weight: bold;">{$data.diff}</span>】条检测记录待更新
+    </p>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">id</th>
+                <th scope="col">游戏名</th>
+                <th scope="col">检测状态</th>
+                <th scope="col">时间</th>
+                <th scope="col">地址</th>
+                <th scope="col">错误信息</th>
+                <th scope="col">复制地址</th>
+            </tr>
+        </thead>
+        <tbody>
+            {foreach $data.result as $row}
+            <tr>
+                <td>{$row.game_code}</td>
+                <td>{$row.game_name}</td>
+                <td>{$row.status}</td>
+                <td>{$row.time}</td>
+                <td><a class="btn btn-success" href="{$row.url}" target="_blank">跳转</a></td>
+                <td>{$row.err}</td>
+                <td><a class="btn btn-success" href="javascript:;" onclick="copy('{$row.url}')">复制</a></td
+            </tr>
+            {/foreach}
+        </tbody>
+    </table>
+</div>
+
+<script src="/assets/libs/fastadmin-layer/dist/layer.js"></script>
+<script>
+    function copy(text) {
+        if (!text) {
+            layer.msg('地址为空！', {icon:2});
+            return;
+        }
+        var input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('Copy');
+        document.body.removeChild(input);
+        layer.msg('复制成功', { icon: 1 });
+    }
+</script>

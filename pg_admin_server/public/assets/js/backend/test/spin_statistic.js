@@ -1,4 +1,4 @@
-define(["jquery", "bootstrap", "backend", "table", "form"], function ($, undefined, Backend, Table, Form) {
+define(["jquery", "bootstrap", "backend", "table", "form", "layer"], function ($, undefined, Backend, Table, Form, layer) {
     var Controller = {
         index: function () {
             // 初始化表格参数配置
@@ -32,7 +32,7 @@ define(["jquery", "bootstrap", "backend", "table", "form"], function ($, undefin
                         {
                             field: 'room_name',
                             title: __('所属游戏'),
-                            searchList: $.getJSON("test/spin_statistic/room_name"),
+                            searchList: $.getJSON("test/spin_statistic/room_name"+location.search),
                         },
                         {field: 'rtp', title: __("档位")},
                         {field: 'mod', title: __("模式"), searchList: {'0': '普通','2': '必中'}, formatter: Table.api.formatter.status},
@@ -76,6 +76,12 @@ define(["jquery", "bootstrap", "backend", "table", "form"], function ($, undefin
         api: {
             bindevent: function () {
                 Form.api.bindevent($("form[role=form]"));
+            },
+            refreshTable: function () {
+                var table = $("#table");
+                if (table) {
+                    table.bootstrapTable('refresh');
+                }
             }
         },
 
@@ -122,9 +128,12 @@ define(["jquery", "bootstrap", "backend", "table", "form"], function ($, undefin
                             operate: false
                         },
                         { field: 'rtp', title: __("RTP"), operate: false },
-                        { field: 'nums', title: __("设置局数"), operate: false },
-                        { field: 'sus', title: __("实际局数"), operate: false },
-                        { field: 'win', title: __("赢局"), operate: false },
+                        { field: 'real_rtp', title: __("实际RTP"), operate: false },
+                        { field: 'nums', title: __("单次局数"), operate: false },
+                        { field: 'rounds', title: __("总轮次"), operate: false },
+                        { field: 'totals', title: __("总次数"), formatter: function (value, row, index) { row = row || {}; var rounds = Number(row.rounds) || 0; var nums = Number(row.nums) || 0; return rounds * nums; }, operate: false },
+                        { field: 'sus', title: __("成功轮次"), operate: false },
+                        { field: 'win', title: __("赢局(>1)"), operate: false },
                         { field: 'lose', title: __("输局"), operate: false },
                         { field: '0', title: __("0倍"), operate: false },
                         { field: '0~1', title: __("0~1倍"), operate: false },
@@ -142,6 +151,18 @@ define(["jquery", "bootstrap", "backend", "table", "form"], function ($, undefin
                         { field: '50~75', title: __("50~75倍"), operate: false },
                         { field: '75~100', title: __("75~100倍"), operate: false },
                         { field: '>100', title: __(">100倍"), operate: false },
+
+                        { field: 'status', title:__("状态"), formatter: function (value, row, index) {
+                            var statusConfig = {
+                                0: { text: '执行中', color: 'default' },
+                                1: { text: '成功', color: 'success' },
+                                2: { text: '失败', color: 'danger' },
+                                3: { text: '超时', color: 'warning' },
+                                4: { text: '修复中', color: 'primary' },
+                            };
+                            var config = statusConfig[value] || { text: '未知', color: 'default' };
+                            return '<span class="label label-' + config.color + '">' + config.text + '</span>';
+                        }},
                         { field: 'c_time', title: __('时间'), operate: 'RANGE', addclass: 'datetimerange', autocomplete: false, formatter: Table.api.formatter.datetime },
                         {
                             field: 'operate',
@@ -160,10 +181,42 @@ define(["jquery", "bootstrap", "backend", "table", "form"], function ($, undefin
                                     },
 
                                 },
+                                {
+                                    name: "fix",
+                                    text: __('修复'),
+                                    title: __('修复数据'),
+                                    classname: 'btn btn-xs btn-warning btn-fix',
+                                    icon: 'fa fa-wrench',
+                                    visible: function (row) {
+                                        return row.status == 3;
+                                    },
+                                },
                             ],
-                            events: Table.api.events.operate,
+                            events: $.extend({}, Table.api.events.operate, {
+                                'click .btn-fix': function (e, value, row, index) {
+                                    e.stopPropagation();
+                                    layer.confirm('确认要修复吗？', {
+                                        btn: ['确定', '取消']
+                                    }, function () {
+                                        if (!row.save_data) {
+                                            layer.msg('修复参数未存储，无法修复', { icon: 2 });
+                                            return;
+                                        }
+
+                                        // 调用 FixData 方法
+                                        if (typeof app !== 'undefined' && typeof app.FixData === 'function') {
+                                            app.FixData(row);
+                                        } else {
+                                            layer.msg('FixData 方法未找到', {icon: 2});
+                                        }
+                                    });
+                                }
+                            }),
                             formatter: Table.api.formatter.operate,
-                        }
+                        },
+                        { field: 'err_msg', title: __("失败原因"), operate: false, width: 200, formatter: function (value, row, index) {
+                            return '<span title="' + (value || '') + '" style="display:block; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + (value || '') + '</span>';
+                        }},
                     ],
                 ],
             });
@@ -171,5 +224,6 @@ define(["jquery", "bootstrap", "backend", "table", "form"], function ($, undefin
             Table.api.bindevent(table);
         },
     };
+    window.Controller = Controller;
     return Controller;
 });

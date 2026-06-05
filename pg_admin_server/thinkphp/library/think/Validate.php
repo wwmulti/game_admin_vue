@@ -37,13 +37,11 @@ class Validate
     // 验证规则默认提示信息
     protected static $typeMsg = [
         'require'     => ':attribute require',
-        'must'        => ':attribute must',
         'number'      => ':attribute must be numeric',
         'integer'     => ':attribute must be integer',
         'float'       => ':attribute must be float',
         'boolean'     => ':attribute must be bool',
         'email'       => ':attribute not a valid email address',
-        'mobile'      => ':attribute not a valid mobile',
         'array'       => ':attribute must be a array',
         'accepted'    => ':attribute must be yes,on or 1',
         'date'        => ':attribute not a valid datetime',
@@ -92,23 +90,6 @@ class Validate
 
     // 当前验证场景
     protected $currentScene = null;
-
-    /**
-     * 内置正则验证规则
-     * @var array
-     */
-    protected $defaultRegex = [
-        'alpha'       => '/^[A-Za-z]+$/',
-        'alphaNum'    => '/^[A-Za-z0-9]+$/',
-        'alphaDash'   => '/^[A-Za-z0-9\-\_]+$/',
-        'chs'         => '/^[\x{4e00}-\x{9fa5}\x{9fa6}-\x{9fef}\x{3400}-\x{4db5}\x{20000}-\x{2ebe0}]+$/u',
-        'chsAlpha'    => '/^[\x{4e00}-\x{9fa5}\x{9fa6}-\x{9fef}\x{3400}-\x{4db5}\x{20000}-\x{2ebe0}a-zA-Z]+$/u',
-        'chsAlphaNum' => '/^[\x{4e00}-\x{9fa5}\x{9fa6}-\x{9fef}\x{3400}-\x{4db5}\x{20000}-\x{2ebe0}a-zA-Z0-9]+$/u',
-        'chsDash'     => '/^[\x{4e00}-\x{9fa5}\x{9fa6}-\x{9fef}\x{3400}-\x{4db5}\x{20000}-\x{2ebe0}a-zA-Z0-9\_\-]+$/u',
-        'mobile'      => '/^1[3-9]\d{9}$/',
-        'idCard'      => '/(^[1-9]\d{5}(18|19|([23]\d))\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$)|(^[1-9]\d{5}\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}$)/',
-        'zip'         => '/\d{6}/',
-    ];
 
     // 正则表达式 regex = ['zip'=>'\d{6}',...]
     protected $regex = [];
@@ -1245,11 +1226,8 @@ class Validate
     {
         if (isset($this->regex[$rule])) {
             $rule = $this->regex[$rule];
-        } elseif (isset($this->defaultRegex[$rule])) {
-            $rule = $this->defaultRegex[$rule];
         }
-
-        if (is_string($rule) && 0 !== strpos($rule, '/') && !preg_match('/\/[imsU]{0,4}$/', $rule)) {
+        if (0 !== strpos($rule, '/') && !preg_match('/\/[imsU]{0,4}$/', $rule)) {
             // 不是正则表达式则两端补上/
             $rule = '/^' . $rule . '$/';
         }

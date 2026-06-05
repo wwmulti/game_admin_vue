@@ -141,7 +141,6 @@ class Merchant extends Backend
         if ($this->dataLimit && $this->dataLimitFieldAutoFill) {
             $params[$this->dataLimitField] = $this->auth->id;
         }
-        $room_data = $params['room_data'];
         // 判断账号是否存在
         $this_admin = Admin::where('username', $params['username'])->find();
         if ($this_admin) {
@@ -168,11 +167,10 @@ class Merchant extends Backend
                 'platform_id' => $params['platform_id'],
                 'free_spin_switch' => $params['free_spin_switch'],
                 'auto_max' => $params['auto_max'],
-                'm_path' => $params['m_path'],
-                'static_domain' => $params['static_domain'],
+                // 'm_path' => $params['m_path'],
+                // 'static_domain' => $params['static_domain'],
             ];
             $merchants_id = $this->model->insertGetId($add_data);
-            $this->room_config_add($merchants_id,$room_data);
             $salt = Random::alnum();
             $admin_data = [
                 'username' => $params['username'],
@@ -321,8 +319,8 @@ class Merchant extends Backend
             $update['status'] = $params['status'];
             $admin_data['username'] = $params['username'];
             $admin_data['nickname'] = $params['name'];
-            $update['m_path'] = $params['m_path'];
-            $update['static_domain'] = $params['static_domain'];
+            // $update['m_path'] = $params['m_path'];
+            // $update['static_domain'] = $params['static_domain'];
         }
 
         $update['free_spin_switch'] = $params['free_spin_switch'];

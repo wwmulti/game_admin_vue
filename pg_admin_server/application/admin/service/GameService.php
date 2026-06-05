@@ -3,7 +3,9 @@
 namespace app\admin\service;
 
 use app\admin\model\Room;
+use app\job\CheckGameJob;
 use app\job\GameDataJob;
+use think\Cache;
 use think\Db;
 use think\Queue;
 
@@ -11,19 +13,14 @@ class GameService
 {
 
     /**
-     * 验证地址
+     * 游戏类型
      */
-    const VERIFY_URL = 'https://api.wwapi.vip/web-api/auth/session/v2/verifyOperatorPlayerSession?traceId=FYRYLY20';
+    public $gameTypes;
 
-    /**
-     * 游戏地址
-     */
-    const SPIN_URL = 'https://api.wwapi.vip/%sv2/%s?traceId=EEBTBG20';
-
-    /**
-     * 队列数量
-     */
-    const QUEUE_NUMS = 5;
+    public function __construct()
+    {
+        $this->gameTypes = config('constant.game_types');
+    }
 
 
     /**
@@ -31,19 +28,8 @@ class GameService
      */
     public function verify($data)
     {
-        $body = [
-            'cp' => $data['op'],
-            'btt' => $data['btt'],
-            'vc' => 2, //TODO::未确认参数
-            'pf' => 1,  //TODO::未确认参数
-            'l' => $data['l'],
-            'gi' => $data['game_code'],
-            'os' => $data['ops'],
-            'otk' => $data['ot'],
-        ];
-
-        $result = wget(self::VERIFY_URL, http_build_query($body));
-        return $result;
+        $game = GameFactory::create($data['type_id']);
+        return $game->verify($data);
     }
 
     /**
@@ -51,88 +37,28 @@ class GameService
      */
     public function runQueue($gameCode, $tk, $path, $querys)
     {
-        $config = Db::table('game_room_base_config')->where('room_id', (int)$gameCode)->find();
-        $betAmounts = explode(',', $config['bet_amount']);
-        $betRates = explode(',', $config['bet_rate']);
-
-        $body = [
-            'id' => strval(microtime(true) * 10000) . strval(mt_rand(10000, 99999)),
-            'cs' => $betAmounts[0], //押注档位(只需最小档位)
-            'ml' => $betRates[0], //押注倍率（只需最小倍率）
-            'wk' => '0_C',
-            'btt' => '1',
-            'atk' => $tk,
-            'pf' => '1',
+        $pattern = 'queues:game_data_batch*';
+        $iterator = null;
+        $keys = [];
+        $redis = Cache::store('redis')->handler();
+        do {
+            $result = $redis->scan($iterator, $pattern, 100);
+            if ($result) {
+                $keys = array_merge($keys, $result);
+            }
+        } while ($iterator > 0);
+        if (!empty($keys)) {
+            throw new \Exception('有进行中的任务，请稍候');
+        }
+        
+        $data = [
+            'game_code' => $gameCode,
+            'tk' => $tk,
+            'path' => $path,
+            'querys' => $querys
         ];
-
-        if ($querys['game_code'] == 63) {
-            $body['gpt'] = 3;
-        } elseif ($querys['game_code'] == 1695365) {
-            $body['fb'] = false;
-        }
-
-        $url = sprintf(self::SPIN_URL, $path, 'spin');
-
-        //验证接口是否存在(服务端spin和Spin接口不同)
-        $func = function ($url) {
-            $test = wget($url, ['t' => 'test']);
-            if (is_string($test)) {
-                preg_match('/\d+/', $test, $matches);
-                if ($matches[0] == 404) {
-                    return false;
-                } else {
-                    throw new \Exception('游戏接口地址异常:' . $test . ' 地址：' . $url);
-                }
-            }
-            return true;
-        };
-
-        $check = $func($url);
-        if ($check === false) {
-            $url = sprintf(self::SPIN_URL, $path, 'Spin');
-            $check = $func($url);
-            if ($check === false) {
-                throw new \Exception('游戏接口地址不存在');
-            }
-        }
-
-        $lastId = Db::table('game_run_stat')->insertGetId(
-            [
-                'user_id' => $querys['user_id'],
-                'atk' => $tk,
-                'body' => json_encode($body),
-                'game_code' => $gameCode,
-                'nums' => $querys['nums'],
-                'rtp' => $querys['rtp'] ?? 0,
-                'type_id' => $querys['type_id'] ?? 0,
-                'c_time' => time()
-            ]
-        );
-
-        $queueNums = self::QUEUE_NUMS;
-        $total = $querys['nums'];
-        $runPerBatch = intval($total / $queueNums); //每批数量
-        $remain = $total % $queueNums;
-
-        for ($batch = 1; $batch <= $queueNums; $batch++) {
-            //最后一批数据单独处理
-            $end = 0;
-            if ($batch == $queueNums) {
-                $end = $runPerBatch + $remain;
-            }
-
-            $data = [
-                'batch' => $batch,
-                'per' => $runPerBatch,
-                'url' => $url,
-                'body' => $body,
-                'end' => $end,
-                'log_id' => $lastId
-            ];
-
-            $isPushed = Queue::push(GameDataJob::class, $data, 'game_data_batch_' . $batch);
-        }
-        return $lastId;
+        $game = GameFactory::create($querys['type_id']);
+        return $game->submitGameData($data);
     }
 
     /**
@@ -147,20 +73,21 @@ class GameService
      */
     public function getRunResultList($where, $sort, $order, $offset, $limit)
     {
-        $games = Room::where('status', 1)->column('name', 'code');
-        $gameTypes = config('constant.game_types');
-        $list = Db::table('game_run_stat')->where($where)->where('status', 1)->order($sort, $order)->paginate($limit)->each(function ($val, $key) use ($games, $gameTypes) {
+        $games = Room::where('status', 1)->column('name', 'id');
+        $gameTypes = $this->gameTypes;
+        $list = Db::table('game_run_stat')->where($where)->order($sort, $order)->paginate($limit)->each(function ($val, $key) use ($games, $gameTypes) {
             // $val['game_name'] = $games[$val['game_code']] ?? '未知';
             $val['game_code'] = $games[$val['game_code']] ?? $val['game_code'];
             $val['type_id'] = $gameTypes[$val['type_id']] ?? $val['type_id'];
             $temp = json_decode($val['result'], true);
-            $val['lose'] = $temp['0'] ?? 0;
+            if (empty($temp)) return $val;
+            $val['lose'] = ($temp['0'] ?? 0) + ($temp['0~1'] ?? 0);
             $win = array_sum(array_values($temp)) - $val['lose'];
+            $val['lose'] = sprintf('%s 【%.2f%%】', $val['lose'], $val['sus'] == 0 ? 0 : ($val['lose'] / $val['sus'] * 100));
             $val['win'] = sprintf('%s 【%.2f%%】', $win, $val['sus'] == 0 ? 0 : ($win / $val['sus'] * 100));
             foreach ($temp as $key => $value) {
                 $val[$key] = sprintf('%s 【%.2f%%】', $value, $val['sus'] == 0 ? 0 : ($value / $val['sus'] * 100));
             }
-            // $val['c_time'] = date('Y-m-d H:i:s', $val['c_time']);
             return $val;
         });
 
@@ -196,13 +123,56 @@ class GameService
             ];
             array_push($result, $t);
         }
-        $games = Room::where('status', 1)->column('name', 'code');
+        $games = Room::where('status', 1)->column('name', 'id');
         $log['game_name'] = $games[$log['game_code']] ?? '未知';
-        $gameTypes = config('constant.game_types');
+        $gameTypes = $this->gameTypes;
         $log['type_id'] = $gameTypes[$log['type_id']] ?? $log['type_id'];
         $log['result'] = $result;
-        $log['lose'] = $temp['0'] ?? 0;
-        $log['win'] = $total - $log['lose'];
+        $log['lose'] = ($temp['0'] ?? 0) + ($temp['0~1'] ?? 0);
+        $win = $total - $log['lose'];
+        $log['lose'] = sprintf('%s 【%.2f%%】', $log['lose'], $log['sus'] == 0 ? 0 : ($log['lose'] / $log['sus'] * 100));
+        $log['win'] = sprintf('%s 【%.2f%%】', $win, $log['sus'] == 0 ? 0 : ($win / $log['sus'] * 100));
         return $log;
+    }
+
+    /**
+     * 游戏入队列检测
+     */
+    public function checkGamesQueue($params)
+    {
+        $gameType = $params['type'] ?? 'pg'; //默认pg
+        $typeId = array_search($gameType, $this->gameTypes);
+        if (!$typeId) {
+            throw new \Exception('游戏类型不存在');
+        }
+
+        $game = GameFactory::create($typeId);
+        $game->submitCheckGame($params);
+    }
+
+    public function getGameCheckResult($type)
+    {
+        $status = [0 => '获取游戏地址失败', 1 => '进入游戏失败', 2 => '接口认证失败', 3 => '游戏接口调用失败', 4 => '正常'];
+        $gameTypes = $this->gameTypes;
+        $gameType = $type ?? 'pg'; //默认pg
+        $typeId = array_search($gameType, $gameTypes);
+
+        $games = Room::where('status', 1)->where('type_id', $typeId)->column('name', 'id');
+        $len = Cache::store('redis')->handler()->llen(sprintf('game_check:%s:', $type));
+        $list = Cache::store('redis')->handler()->lrange(sprintf('game_check:%s:', $type), 0, $len);
+        $result = [];
+        foreach ($list as $val) {
+            $val = json_decode($val, true);
+            $val['game_name'] = $games[$val['game_code']] ?? $val['game_code'];
+            $val['status'] = $status[$val['status']] ?? $val['status'];
+            $val['time'] = date('Y-m-d H:i:s', $val['time']);
+            $result[$val['status']][] = $val;
+        }
+        krsort($result);
+        $ret = [];
+        foreach ($result as $v) {
+            $ret = array_merge($ret, $v);
+        }
+        return ['result' => $ret, 'diff' => count($games) - count($ret)];
     }
 }

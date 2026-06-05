@@ -104,7 +104,7 @@ class User extends Backend
             $supplier_data['date_time'] = $vo['date_time'];
             $supplier_data['merchant_id'] = $MerchantArray[$vo['merchant_id']]??'';
             $supplier_data['platform_id'] = $PlatformArray[$vo['platform_id']]??'';
-            $supplier_data['user_id'] = $UserArray[$vo['user_id']]??'';
+            $supplier_data['user_id'] = $UserArray[$vo['user_id']] ?? sprintf('user-%s',$vo['user_id']);
             $supplier_data['bet_times'] = $vo['bet_times'];
             $total['bet_times'] = bcadd($total['bet_times'], $vo['bet_times']);
             $total['bet_amount'] = bcadd($total['bet_amount'], FormatMoney($vo['bet_amount']), 2);

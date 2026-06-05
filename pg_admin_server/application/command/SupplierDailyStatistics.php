@@ -24,7 +24,7 @@ class SupplierDailyStatistics extends Command
     {
         $output->writeln('statistics reset_data Crontab job start;');
 
-//        $this->beiyong($output);
+        // $this->beiyong($output);return;
         try {
             $today =  date('Y-m-d', time());
             $yestorday = date('Y-m-d', time() - 3600 * 24);
@@ -45,7 +45,7 @@ class SupplierDailyStatistics extends Command
     public function beiyong($output)
     {
         $output->writeln('statistics statistic Crontab job start;' . date('Y-m-d H:i:s', time()));
-        $start_date = '2024-08-26';  // 开始日期
+        $start_date = '2026-05-18';  // 开始日期
         $end_date = date('Y-m-d', time());    // 结束日期
         $current_date = strtotime($start_date);
         $end_timestamp = strtotime($end_date);
@@ -76,6 +76,12 @@ class SupplierDailyStatistics extends Command
         $startStampTime = strtotime($startTime);
         $endStampTime = strtotime($endTime);
 
+        // 小于100的rtp_id
+        $rtpInfo = $model->table('game_rtp')
+            ->where('rtp', 100)
+            ->find();
+        $rtpId = $rtpInfo['id'] ?? 21;
+
         //新注册用户
         $newUserNumArray = User::where('created_at', 'between', [$startTime, $endTime])
             ->group('platform_id,merchant_id')
@@ -91,6 +97,8 @@ class SupplierDailyStatistics extends Command
             if (!empty($vo['history_table_name'])) {
                 $result = Db::query("SHOW TABLES LIKE '{$vo['history_table_name']}'");
                 if ($result) {
+                    $tempStartTime = time();
+                    $output->writeln(sprintf('table [%s] runstat start at %s', $vo['history_table_name'], date('Y-m-d H:i:s')));
                     $where_array = [];
                     if($vo['history_table_name'] == 'game_wingo_log'){
                         $where_array['win_status'] = ['neq',0];
@@ -113,6 +121,7 @@ class SupplierDailyStatistics extends Command
                         $query_data = $model->table($vo['history_table_name'])
                             ->where($where_array)
                             ->where('created_at', 'between', [$startStampTime * 1000, $endStampTime * 1000])
+                            ->where('rtp_id', '<', $rtpId)
                             ->group('platform_id,merchant_id')
                             ->field("sum(bet) bet_amount,sum(transfer) transfer,merchant_id,platform_id,count(*) bet_times")
                             ->select();
@@ -120,6 +129,7 @@ class SupplierDailyStatistics extends Command
                         $user_data = $model->table($vo['history_table_name'])
                             ->where($where_array)
                             ->where('created_at', 'between', [$startStampTime * 1000, $endStampTime * 1000])
+                            ->where('rtp_id', '<', $rtpId)
                             ->group('platform_id,merchant_id,user_id')
                             ->field("merchant_id,platform_id,user_id")
                             ->select();
@@ -142,6 +152,8 @@ class SupplierDailyStatistics extends Command
                         }
                         $statistics_array[] = $vv;
                     }
+                    $tempEndTime = time();
+                    $output->writeln(sprintf('table [%s] runstat end at %s ,usetime: %ds', $vo['history_table_name'], date('Y-m-d H:i:s'), $tempEndTime - $tempStartTime));     
                 }
             }
         }
