@@ -335,12 +335,7 @@
 
   /** 生成随机字符串（参考 add.html 中的 generateRandomString） */
   function generateRandomString(length: number) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let result = ''
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return result
+    return (window as any).generateRandomString(32)
   }
 
   /** 初始化表单数据 */
