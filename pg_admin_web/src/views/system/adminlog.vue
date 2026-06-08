@@ -28,33 +28,33 @@
     </ElCard>
 
     <!-- 详情弹窗 -->
-    <ElDialog v-model="showDetailDialog" title="日志详情" width="700" center>
+    <ElDialog v-model="showDetailDialog" :title="$t('riZhiXiangQing')" width="700" center>
       <ElDescriptions :column="1" border>
         <ElDescriptionsItem label="ID">{{ detailRow.id }}</ElDescriptionsItem>
         <ElDescriptionsItem label="Admin ID">{{ detailRow.admin_id }}</ElDescriptionsItem>
-        <ElDescriptionsItem label="用户名">{{ detailRow.username }}</ElDescriptionsItem>
+        <ElDescriptionsItem :label="$t('yongHuMing')">{{ detailRow.username }}</ElDescriptionsItem>
         <ElDescriptionsItem label="URL">{{ detailRow.url }}</ElDescriptionsItem>
-        <ElDescriptionsItem label="标题">{{ detailRow.title }}</ElDescriptionsItem>
-        <ElDescriptionsItem label="内容">
+        <ElDescriptionsItem :label="$t('biaoTi')">{{ detailRow.title }}</ElDescriptionsItem>
+        <ElDescriptionsItem :label="$t('neiRong')">
           <pre style="white-space: pre-wrap; word-break: break-all; margin: 0">{{ formatContent(detailRow.content) }}</pre>
         </ElDescriptionsItem>
         <ElDescriptionsItem label="IP">{{ detailRow.ip }}</ElDescriptionsItem>
         <ElDescriptionsItem label="User-Agent">{{ detailRow.useragent }}</ElDescriptionsItem>
-        <ElDescriptionsItem label="创建时间">{{ detailRow.recordTime }}</ElDescriptionsItem>
+        <ElDescriptionsItem :label="$t('chuangJianShiJian')">{{ detailRow.recordTime }}</ElDescriptionsItem>
       </ElDescriptions>
       <template #footer>
-        <ElButton @click="showDetailDialog = false">关闭</ElButton>
+        <ElButton @click="showDetailDialog = false">{{ $t('btn.close') }}</ElButton>
       </template>
     </ElDialog>
 
     <!-- 删除确认弹窗 -->
-    <ElDialog v-model="showDeleteDialog" title="删除" width="500" center>
+    <ElDialog v-model="showDeleteDialog" :title="$t('shanChu')" width="500" center>
       <div style="text-align: center">
-        <span style="font-size: 16px">确定要删除该日志吗？</span>
+        <span style="font-size: 16px">{{ $t('queRenYaoShanChuRiZhiMa') }}</span>
       </div>
       <template #footer>
-        <ElButton @click="showDeleteDialog = false">取消</ElButton>
-        <ElButton type="danger" @click="confirmDelete">删除</ElButton>
+        <ElButton @click="showDeleteDialog = false">{{ $t('quXiao') }}</ElButton>
+        <ElButton type="danger" @click="confirmDelete">{{ $t('shanChu') }}</ElButton>
       </template>
     </ElDialog>
   </div>
@@ -84,19 +84,19 @@
       label: '',
       key: 'adminId',
       type: 'input',
-      props: { placeholder: '用户ID', style: { width: '100px' } }
+      props: { placeholder: $t('yongHuId'), style: { width: '100px' } }
     },
     {
       label: '',
       key: 'username',
       type: 'input',
-      props: { placeholder: '用户名', style: { width: '130px' } }
+      props: { placeholder: $t('yongHuMing'), style: { width: '130px' } }
     },
     {
       label: '',
       key: 'title',
       type: 'input',
-      props: { placeholder: '标题', style: { width: '160px' } }
+      props: { placeholder: $t('biaoTi'), style: { width: '160px' } }
     },
     {
       label: '',
@@ -116,8 +116,8 @@
       type: 'daterange',
       props: {
         type: 'daterange',
-        'start-placeholder': '开始时间',
-        'end-placeholder': '结束时间',
+        'start-placeholder': $t('kaiShiShiJian'),
+        'end-placeholder': $t('jieShuShiJian'),
         'value-format': 'YYYY-MM-DD',
         style: { width: '240px' }
       }
@@ -171,12 +171,12 @@
           width: 70
         },
         {
-          label: '用户名',
+          label: $t('yongHuMing'),
           prop: 'username',
           minWidth: 100
         },
         {
-          label: '标题',
+          label: $t('biaoTi'),
           prop: 'title',
           minWidth: 160
         },
@@ -191,13 +191,13 @@
           minWidth: 200
         },
         {
-          label: '创建时间',
+          label: $t('chuangJianShiJian'),
           prop: 'recordTime',
           minWidth: 160
         },
         {
           prop: 'operate',
-          label: '操作',
+          label: $t('caoZuo'),
           width: 160,
           fixed: 'right',
           formatter: (row: any) =>
@@ -205,12 +205,12 @@
               h(
                 ElButton,
                 { type: 'primary', size: 'small', onClick: () => handleShowDetail(row) },
-                () => '详情'
+                () => $t('btn.detail')
               ),
               h(
                 ElButton,
                 { type: 'danger', size: 'small', onClick: () => handleShowDeleteDialog(row) },
-                () => '删除'
+                () => $t('shanChu')
               )
             ])
         }
@@ -253,11 +253,11 @@
         ids: String(deleteTargetId.value)
       })
       if (result.code === 200) {
-        ElMessage.success('删除成功')
+        ElMessage.success($t('shanChuChengGong'))
         showDeleteDialog.value = false
         await getData()
       } else {
-        ElMessage.error(result.msg || '删除失败')
+        ElMessage.error(result.msg || $t('shanChuShiBai'))
       }
     } finally {
       loadingInstance.close()
@@ -270,14 +270,14 @@
     if (!tableRef) return
     const rows = tableRef.getSelectionRows()
     if (!rows.length) {
-      ElMessage.warning('请至少选择一项')
+      ElMessage.warning($t('qingZhiShaoXuanZeYiXiang'))
       return
     }
     const ids = rows.map((r: any) => r.id)
     ElMessageBox.confirm(
-      '确定要删除选中的日志吗？',
-      '提示',
-      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
+      $t('queDingYaoShanChuXuanZhongRiZhi'),
+      $t('common.tips'),
+      { confirmButtonText: $t('queDing'), cancelButtonText: $t('quXiao'), type: 'warning' }
     ).then(async () => {
       const loadingInstance = ElLoading.service({})
       try {
@@ -285,10 +285,10 @@
           ids: ids.join(',')
         })
         if (result.code === 200) {
-          ElMessage.success('删除成功')
+          ElMessage.success($t('shanChuChengGong'))
           await getData()
         } else {
-          ElMessage.error(result.msg || '删除失败')
+          ElMessage.error(result.msg || $t('shanChuShiBai'))
         }
       } finally {
         loadingInstance.close()

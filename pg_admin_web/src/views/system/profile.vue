@@ -4,7 +4,7 @@
       <div class="avatar-section">
         <div class="avatar-wrapper" @click="handleAvatarClick">
           <ElAvatar :size="100" :src="form.avatar" />
-          <div class="avatar-overlay">更换头像</div>
+          <div class="avatar-overlay">{{ $t('gengHuanTouXiang') }}</div>
         </div>
         <div class="username-text">{{ form.username }}</div>
         <input
@@ -23,45 +23,45 @@
         class="profile-form"
         @submit.prevent
       >
-        <ElFormItem label="用户名" prop="username">
+        <ElFormItem :label="$t('yongHuMing')" prop="username">
           <ElInput v-model="form.username" />
         </ElFormItem>
 
-        <ElFormItem label="昵称" prop="nickname">
+        <ElFormItem :label="$t('niCheng')" prop="nickname">
           <ElInput v-model="form.nickname" />
         </ElFormItem>
 
-        <ElFormItem label="密码" prop="password">
+        <ElFormItem :label="$t('miMa')" prop="password">
           <ElInput
             v-model="form.password"
             type="password"
             show-password
-            placeholder="不修改密码请留空"
+            :placeholder="$t('buXiuGaiMiMaQingLiuKong')"
           />
         </ElFormItem>
 
-        <ElFormItem label="谷歌验证">
+        <ElFormItem :label="$t('guGeYanZheng')">
           <ElRadioGroup v-model="form.google_switch">
-            <ElRadio :value="1">开启</ElRadio>
-            <ElRadio :value="0">关闭</ElRadio>
+            <ElRadio :value="1">{{ $t('kaiQi') }}</ElRadio>
+            <ElRadio :value="0">{{ $t('guanBi') }}</ElRadio>
           </ElRadioGroup>
         </ElFormItem>
 
-        <ElFormItem v-if="form.google_verify" label="谷歌密钥">
+        <ElFormItem v-if="form.google_verify" :label="$t('guGeMiYue')">
           <ElInput v-model="form.google_verify" readonly>
             <template #append>
-              <ElButton @click="handleCopySecret">复制</ElButton>
+              <ElButton @click="handleCopySecret">{{ $t('btn.copy') }}</ElButton>
             </template>
           </ElInput>
         </ElFormItem>
 
-        <ElFormItem v-if="form.qrCodeUrl" label="二维码">
+        <ElFormItem v-if="form.qrCodeUrl" :label="$t('erWeiMa')">
           <QrcodeVue :value="form.qrCodeUrl" :size="150" level="M" />
         </ElFormItem>
 
         <ElFormItem>
           <ElButton type="primary" :loading="loading" @click="handleSubmit">
-            提交
+            {{ $t('tiJiao') }}
           </ElButton>
         </ElFormItem>
       </ElForm>
@@ -71,6 +71,7 @@
 
 <script setup lang="ts">
 import { getProfile, updateProfile, uploadAvatar } from '@/api/system'
+import { $t } from '@/locales'
 import QrcodeVue from 'qrcode.vue'
 
 defineOptions({ name: 'Profile' })
@@ -109,9 +110,9 @@ const fetchProfile = async () => {
 const handleCopySecret = async () => {
   try {
     await navigator.clipboard.writeText(form.google_verify)
-    ElMessage.success('已复制')
+    ElMessage.success($t('fuZhiChengGong'))
   } catch {
-    ElMessage.error('复制失败')
+    ElMessage.error($t('fuZhiShiBai'))
   }
 }
 
@@ -158,7 +159,7 @@ const handleSubmit = async () => {
 
     const res = await updateProfile(data)
     if (res.code === 200) {
-      ElMessage.success('保存成功')
+      ElMessage.success($t('baoCunChengGong'))
       // 重新获取最新数据（google_verify 和 qrCodeUrl 可能已更新）
       await fetchProfile()
       // 清空密码输入

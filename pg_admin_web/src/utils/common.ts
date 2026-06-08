@@ -16,6 +16,7 @@ export function toggleStatus(status: 0 | 1): number {
  * @param timestamp 秒级时间戳
  */
 export function formatTimestamp(timestamp: number): string {
+  if (!timestamp) return '-'
   const date = new Date(timestamp * 1000)
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')

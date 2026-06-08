@@ -20,6 +20,8 @@ class Auth extends \fast\Auth
     protected $breadcrumb = [];
     protected $logined = false; //登录状态
 
+    public $userInfo = [];
+
     public function __construct()
     {
         $admin_info = Session::get("admin");
@@ -31,7 +33,8 @@ class Auth extends \fast\Auth
 
     public function __get($name)
     {
-        return Session::get('admin.' . $name);
+        // return Session::get('admin.' . $name);
+        return $this->userInfo[$name] ?? null;
     }
 
     /**

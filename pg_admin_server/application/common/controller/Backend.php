@@ -281,7 +281,8 @@ class Backend extends Controller
             }
 
             $this->request = request();
-            $this->auth = new Auth();
+            $this->auth = Auth::instance();
+            $this->auth->userInfo = $this->getAdmin();
         }
     }
 
@@ -362,13 +363,95 @@ class Backend extends Controller
         $this->view->config = array_merge($this->view->config ? $this->view->config : [], is_array($name) ? $name : [$name => $value]);
     }
 
+    // 新前端传参处理
+    protected function buildparams($op = [], $ignoreFields = []) {
+        $sort = $this->request->get("sort", !empty($this->model) && $this->model->getPk() ? $this->model->getPk() : 'id');
+        $order = $this->request->get("order", "DESC");
+        $page = $this->request->get("page/d", 1);
+        $limit = $this->request->get("limit/d", 0);
+        $limit = $limit ?: 999999;
+
+        $where = [];
+
+        // 收集所有 GET 参数，排除分页/排序等系统参数
+        $systemFields = ['sort', 'order', 'page', 'limit'];
+        $allParams = $this->request->get();
+        foreach ($allParams as $field => $value) {
+            // 跳过系统字段
+            if (in_array($field, $systemFields)) {
+                continue;
+            }
+            // 跳过空值
+            if ($value === '' || $value === null || $value === false) {
+                continue;
+            }
+            // 跳过忽略字段
+            if (in_array($field, $ignoreFields)) {
+                continue;
+            }
+
+            $field = rtrim($field, '[]');
+            $method = $op[$field] ?? 'eq';
+
+            switch ($method) {
+                case 'like':
+                    $where[$field] = ['LIKE', "%{$value}%"];
+                    break;
+
+                case 'times':
+                    // times 格式：["开始时间","结束时间"]
+                    if (is_array($value) && count($value) >= 2) {
+                        $start = strtotime($value[0]);
+                        $end = strlen($value[1]) > 10 ? strtotime($value[1]) : (strtotime($value[1]) + 86400);
+                        $where[$field] = [['>=', $start], ['<', $end]];
+                    }
+                    break;
+
+                case 'date':
+                    $timestamp = strtotime($value);
+                    if ($timestamp !== false) {
+                        $where[$field] = [['>=', $timestamp], ['<', $timestamp + 86400]];
+                    }
+                    break;
+
+                case 'gt':
+                    $where[$field] = ['>', $value];
+                    break;
+
+                case 'gte':
+                    $where[$field] = ['>=', $value];
+                    break;
+
+                case 'lt':
+                    $where[$field] = ['<', $value];
+                    break;
+
+                case 'lte':
+                    $where[$field] = ['<=', $value];
+                    break;
+
+                case 'ne':
+                case 'neq':
+                    $where[$field] = ['!=', $value];
+                    break;
+
+                default:
+                    // 不传 method 或未知 method，默认等于
+                    $where[$field] = ['=', $value];
+                    break;
+            }
+        }
+
+        return [$where, $sort, $order, $page, $limit];
+    }
+
     /**
      * 生成查询所需要的条件,排序方式
      * @param mixed   $searchfields   快速查询的字段
      * @param boolean $relationSearch 是否关联查询
      * @return array
      */
-    protected function buildparams($searchfields = null, $relationSearch = null)
+    protected function buildparamsOld($searchfields = null, $relationSearch = null)
     {
         $searchfields = is_null($searchfields) ? $this->searchFields : $searchfields;
         $relationSearch = is_null($relationSearch) ? $this->relationSearch : $relationSearch;

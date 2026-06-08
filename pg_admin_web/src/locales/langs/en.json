@@ -1119,5 +1119,18 @@
   "jieBangGuGe": "Unbind Google",
   "luYouMingCheng": "Route Name",
   "qingQiuDiZhi": "Request Uri",
-  "wuShuJu": "No Data"
+  "wuShuJu": "No Data",
+  "gengHuanTouXiang": "Change Avatar",
+  "guGeYanZheng": "Google Verification",
+  "erWeiMa": "QR Code",
+  "fuZhiShiBai": "Copy failed",
+  "riZhiXiangQing": "Log Details",
+  "shanChuChengGong": "Deleted successfully",
+  "shanChuShiBai": "Delete failed",
+  "qingZhiShaoXuanZeYiXiang": "Please select at least one item",
+  "tianJiaPingTai": "Add Platform",
+  "bianJiPingTai": "Edit Platform",
+  "queDingYaoShanChuPingTai": "Are you sure you want to delete platform 【{0}】?",
+  "queDingYaoShanChuXuanZhongPingTai": "Are you sure you want to delete the selected platforms?",
+  "queDingYaoShanChuXuanZhongRiZhi": "Are you sure you want to delete the selected logs?"
 }

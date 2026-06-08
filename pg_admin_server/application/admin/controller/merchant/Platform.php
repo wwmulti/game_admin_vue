@@ -37,16 +37,12 @@ class Platform extends Backend
      */
     public function index()
     {
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if (false === $this->request->isAjax()) {
-            return $this->view->fetch();
-        }
-        //如果发送的来源是 Selectpage，则转发到 Selectpage
-        if ($this->request->request('keyField')) {
-            return $this->selectpage();
-        }
-        [$where, $sort, $order, $offset, $limit] = $this->buildparams();
+        $op = [
+            'name' => 'like',
+            'createtime' => 'times',
+            'updatetime' => 'times',
+        ];
+        [$where, $sort, $order, $offset, $limit] = $this->buildparams($op);
         $this->model = new \app\admin\model\merchant\Platform;
         $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');
         if($this_admin_access == 2 || $this_admin_access == 3){
@@ -72,7 +68,7 @@ class Platform extends Backend
             unset($vo['admin_id']);
         }
         $result = ['total' => $list->total(), 'rows' => $list->items()];
-        return json($result);
+        return $this->jsonSucc($result);
     }
 
     /**
@@ -86,9 +82,9 @@ class Platform extends Backend
         if (false === $this->request->isPost()) {
             return $this->view->fetch();
         }
-        $params = $this->request->post('row/a');
+        $params = $this->request->post();
         if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
         $params = $this->preExcludeFields($params);
 
@@ -98,10 +94,10 @@ class Platform extends Backend
         // 判断账号是否存在
         $this_admin = Admin::where('username', $params['username'])->find();
         if ($this_admin) {
-            $this->error('账号已存在');
+            return $this->jsonFail('账号已存在');
         }
         if (!Validate::is($params['password'], '\S{6,16}')) {
-            $this->error('密码长度必须在6-30位之间，不能包含空格"');
+            return $this->jsonFail('密码长度必须在6-30位之间，不能包含空格"');
         }
         Db::startTrans();
         try {
@@ -135,9 +131,9 @@ class Platform extends Backend
             Db::commit();
         } catch (ValidateException|PDOException|\Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
-        $this->success();
+        return $this->jsonSucc();
     }
 
 
@@ -154,27 +150,17 @@ class Platform extends Backend
             $AuthGroupAccessStatus = 2;
             $row = $this->model->where('id',$this->auth->platform_id)->find();
         }else{
-            $row = $this->model->get($ids);
+            $id = $this->request->post('id');
+            $row = $this->model->get($id);
         }
         $admin_select_info = Admin::where('id', $row['admin_id'])->find();
         if(!$admin_select_info){
             $row['admin_id'] = '';
         }
 
-
-        if (false === $this->request->isPost()) {
-            $row['username'] = '';
-            if(!empty($row['admin_id'])){
-                $admin_info = Admin::where('id', $row['admin_id'])->field('id,username')->find();
-                $row['username'] = $admin_info['username']??'';
-            }
-            $this->view->assign('row', $row);
-            $this->view->assign('AuthGroupAccessStatus', $AuthGroupAccessStatus);
-            return $this->view->fetch();
-        }
-        $params = $this->request->post('row/a');
+        $params = $this->request->post();
         if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
         $params = $this->preExcludeFields($params);
 
@@ -184,7 +170,7 @@ class Platform extends Backend
         $admin_data = [];
         if (!empty($params['password'])) {
             if (!Validate::is($params['password'], '\S{6,16}')) {
-                $this->error('密码长度必须在6-30位之间，不能包含空格"');
+                return $this->jsonFail('密码长度必须在6-30位之间，不能包含空格"');  
             }
             $admin_data['salt'] = Random::alnum();
             $admin_data['password'] = $this->auth->getEncryptPassword($params['password'], $admin_data['salt']);
@@ -197,13 +183,13 @@ class Platform extends Backend
                 $this_admin_where['username'] = ['eq', $params['username']];
                 $this_admin = Admin::where($this_admin_where)->find();
                 if ($this_admin) {
-                    $this->error('账号已存在');
+                    return $this->jsonFail('账号已存在');
                 }
             }else{
                 $this_admin_where['username'] = ['eq', $params['username']];
                 $this_admin = Admin::where('username',$params['username'])->find();
                 if ($this_admin) {
-                    $this->error('账号已存在');
+                    return $this->jsonFail('账号已存在');
                 }
             }
             $admin_data['username'] = $params['username'];
@@ -245,11 +231,10 @@ class Platform extends Backend
             Db::commit();
         } catch (ValidateException|PDOException|\Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
-        $this->success();
+        return $this->jsonSucc();
     }
-
 
     public function platform_admin()
     {

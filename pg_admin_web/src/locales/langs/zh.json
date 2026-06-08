@@ -1120,5 +1120,18 @@
   "tuBiaoCanKao": "图标参考",
   "pingTaiFenZu": "平台分组",
   "meiYouXiuGaiNeiRong": "没有修改内容",
-  "wuShuJu": "无数据"
+  "wuShuJu": "无数据",
+  "gengHuanTouXiang": "更换头像",
+  "guGeYanZheng": "谷歌验证",
+  "erWeiMa": "二维码",
+  "fuZhiShiBai": "复制失败",
+  "riZhiXiangQing": "日志详情",
+  "shanChuChengGong": "删除成功",
+  "shanChuShiBai": "删除失败",
+  "qingZhiShaoXuanZeYiXiang": "请至少选择一项",
+  "tianJiaPingTai": "添加平台",
+  "bianJiPingTai": "编辑平台",
+  "queDingYaoShanChuPingTai": "确定要删除平台【{0}】吗？",
+  "queDingYaoShanChuXuanZhongPingTai": "确定要删除选中的平台吗？",
+  "queDingYaoShanChuXuanZhongRiZhi": "确定要删除选中的日志吗？"
 }

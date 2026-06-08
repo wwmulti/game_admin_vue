@@ -26,6 +26,9 @@ trait Backend
      */
     protected function preExcludeFields($params)
     {
+        if (empty($this->excludeFields)) {
+            return $params;
+        }
         if (is_array($this->excludeFields)) {
             foreach ($this->excludeFields as $field) {
                 if (array_key_exists($field, $params)) {
@@ -62,7 +65,7 @@ trait Backend
             ->order($sort, $order)
             ->paginate($limit);
         $result = ['total' => $list->total(), 'rows' => $list->items()];
-        return json($result);
+        return $this->jsonSucc($result);
     }
 
     /**
@@ -101,7 +104,7 @@ trait Backend
         }
         $params = $this->request->post('row/a');
         if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
         $params = $this->preExcludeFields($params);
 
@@ -121,12 +124,12 @@ trait Backend
             Db::commit();
         } catch (ValidateException|PDOException|Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
         if ($result === false) {
-            $this->error(__('No rows were inserted'));
+            return $this->jsonFail(__('No rows were inserted'));
         }
-        $this->success();
+        return $this->jsonSucc();
     }
 
     /**
@@ -141,11 +144,11 @@ trait Backend
     {
         $row = $this->model->get($ids);
         if (!$row) {
-            $this->error(__('No Results were found'));
+            return $this->jsonFail(__('No Results were found'));
         }
         $adminIds = $this->getDataLimitAdminIds();
         if (is_array($adminIds) && !in_array($row[$this->dataLimitField], $adminIds)) {
-            $this->error(__('You have no permission'));
+            return $this->jsonFail(__('You have no permission'));
         }
         if (false === $this->request->isPost()) {
             $this->view->assign('row', $row);
@@ -153,7 +156,7 @@ trait Backend
         }
         $params = $this->request->post('row/a');
         if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
         $params = $this->preExcludeFields($params);
         $result = false;
@@ -169,12 +172,12 @@ trait Backend
             Db::commit();
         } catch (ValidateException|PDOException|Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
         if (false === $result) {
-            $this->error(__('No rows were updated'));
+            return $this->jsonFail(__('No rows were updated'));
         }
-        $this->success();
+        return $this->jsonSucc();
     }
 
     /**
@@ -189,11 +192,11 @@ trait Backend
     public function del($ids = null)
     {
         if (false === $this->request->isPost()) {
-            $this->error(__("Invalid parameters"));
+            return $this->jsonFail(__("Invalid parameters"));
         }
         $ids = $ids ?: $this->request->post("ids");
         if (empty($ids)) {
-            $this->error(__('Parameter %s can not be empty', 'ids'));
+            return $this->jsonFail(__('Parameter %s can not be empty', 'ids'));
         }
         $pk = $this->model->getPk();
         $adminIds = $this->getDataLimitAdminIds();
@@ -211,12 +214,12 @@ trait Backend
             Db::commit();
         } catch (PDOException|Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
         if ($count) {
-            $this->success();
+            return $this->jsonSucc();
         }
-        $this->error(__('No rows were deleted'));
+        return $this->jsonFail(__('No rows were deleted'));
     }
 
     /**
@@ -228,7 +231,7 @@ trait Backend
     public function destroy($ids = null)
     {
         if (false === $this->request->isPost()) {
-            $this->error(__("Invalid parameters"));
+            return $this->jsonFail(__("Invalid parameters"));
         }
         $ids = $ids ?: $this->request->post('ids');
         $pk = $this->model->getPk();
@@ -249,12 +252,12 @@ trait Backend
             Db::commit();
         } catch (PDOException|Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
         if ($count) {
-            $this->success();
+            return $this->jsonSucc();
         }
-        $this->error(__('No rows were deleted'));
+        return $this->jsonFail(__('No rows were deleted'));
     }
 
     /**
