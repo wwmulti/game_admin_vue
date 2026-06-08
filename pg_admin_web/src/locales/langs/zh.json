@@ -109,6 +109,8 @@
       "resetFailed": "重置失败，请刷新页面后重试"
     }
   },
+  "zuiDaFanJiang": "最大返奖",
+  "biaoShi": "表示",
   "notice": {
     "title": "通知",
     "btnRead": "标为已读",
@@ -1133,5 +1135,12 @@
   "bianJiPingTai": "编辑平台",
   "queDingYaoShanChuPingTai": "确定要删除平台【{0}】吗？",
   "queDingYaoShanChuXuanZhongPingTai": "确定要删除选中的平台吗？",
-  "queDingYaoShanChuXuanZhongRiZhi": "确定要删除选中的日志吗？"
+  "queDingYaoShanChuXuanZhongRiZhi": "确定要删除选中的日志吗？",
+  "suoShuPingTai": "所属平台",
+  "peiZhi": "配置",
+  "shengCheng": "生成",
+  "qiTa": "其他",
+  "peiZhiShuaXin": "配置刷新",
+  "peiZhiShuaXinTiShi": "修改商户后需点击此按钮才能生效",
+  "queDingYaoShuaXinPeiZhi": "确定要刷新配置吗？"
 }

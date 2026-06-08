@@ -74,6 +74,18 @@
         </div>
       </template>
     </ElDialog>
+
+    <!-- 商户列表弹窗 -->
+    <ElDialog
+      v-model="showMerchantDialog"
+      :title="$t('shangHuLieBiao')"
+      width="1200"
+      top="5vh"
+      center
+      destroy-on-close
+    >
+      <MerchantIndex :platform_id="merchantPlatformId" />
+    </ElDialog>
   </div>
 </template>
 
@@ -89,6 +101,7 @@
     ElTag
   } from 'element-plus'
   import { getPlatformList, addPlatform, editPlatform, deletePlatform } from '@/api/platform'
+  import MerchantIndex from '@/views/merchant/index.vue'
 
   const searchBarRef = ref()
   const searchForm = ref<Record<string, any>>({
@@ -148,6 +161,8 @@
   // 弹窗
   const showEditDialog = ref(false)
   const showDeleteDialog = ref(false)
+  const showMerchantDialog = ref(false)
+  const merchantPlatformId = ref<number | null>(null)
   const isAdd = ref(false)
   const deleteTargetName = ref('')
   const deleteTargetId = ref<number | null>(null)
@@ -232,7 +247,7 @@
             h('div', [
               h(
                 ElButton,
-                { type: 'primary', size: 'small', disabled: true },
+                { type: 'primary', size: 'small', onClick: () => handleShowMerchant(row) },
                 () => $t('shangHuLieBiao')
               ),
               h(
@@ -288,6 +303,12 @@
     form.password = ''
     form.status = row.status
     showEditDialog.value = true
+  }
+
+  // 商户列表
+  function handleShowMerchant(row: any) {
+    merchantPlatformId.value = row.id
+    showMerchantDialog.value = true
   }
 
   async function submitRow() {

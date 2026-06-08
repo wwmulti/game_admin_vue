@@ -109,6 +109,8 @@
       "resetFailed": "Reset failed, please refresh the page and try again"
     }
   },
+  "zuiDaFanJiang": "Max reward",
+  "biaoShi": "means",
   "notice": {
     "title": "Notice",
     "btnRead": "Mark as read",
@@ -1132,5 +1134,12 @@
   "bianJiPingTai": "Edit Platform",
   "queDingYaoShanChuPingTai": "Are you sure you want to delete platform 【{0}】?",
   "queDingYaoShanChuXuanZhongPingTai": "Are you sure you want to delete the selected platforms?",
-  "queDingYaoShanChuXuanZhongRiZhi": "Are you sure you want to delete the selected logs?"
+  "queDingYaoShanChuXuanZhongRiZhi": "Are you sure you want to delete the selected logs?",
+  "suoShuPingTai": "Platform",
+  "peiZhi": "Config",
+  "shengCheng": "Generate",
+  "qiTa": "Other",
+  "peiZhiShuaXin": "Refresh Config",
+  "peiZhiShuaXinTiShi": "Click to apply changes after merchant modification",
+  "queDingYaoShuaXinPeiZhi": "Are you sure to refresh config?"
 }

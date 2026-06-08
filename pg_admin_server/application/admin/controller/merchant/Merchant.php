@@ -17,6 +17,7 @@ use think\exception\ValidateException;
 use think\Session;
 use think\Validate;
 use app\admin\model\BetAmountConfig;
+use app\admin\model\merchant\Setting;
 
 /**
  * 管理员管理
@@ -54,52 +55,65 @@ class Merchant extends Backend
     public function index()
     {
         $platform_id = $this->request->get('platform_id','');
-        //当前是否为关联查询
-        $this->relationSearch = false;
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if ($this->request->isAjax()) {
-            list($where, $sort, $order, $offset, $limit) = $this->buildparams();
-            $where_array = [];
-            $current_permission = 1;
-            $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');
-            $field = "id,admin_id,token,secret,name,mark";
-            $where_arrray = [];
-            if($this_admin_access == 2){
-                $where_array['platform_id'] = $this->auth->platform_id;
-                $current_permission = 2;
-            }else if($this_admin_access == 3){
-                $where_array['platform_id'] = $this->auth->platform_id;
-                $where_array['id'] = $this->auth->merchant_id;
-                $current_permission = 2;
-            }else{
-                if(!empty($platform_id)){
-                    $where_array['platform_id'] = ['eq',$platform_id];
-                }
+        list($where, $sort, $order, $offset, $limit) = $this->buildparams(['name' => 'like'], ['platform_id']);
+        $where_array = [];
+        $current_permission = 1;
+        $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');
+        $field = "id,admin_id,platform_id,token,secret,name,mark,rtp_id,cash_get_url,cash_transferinout_url,style_name_switch,style_bb_switch,style_ec_switch,style_oj_switch,status,free_spin_switch,auto_max,ip_array,official_currency";
+        if($this_admin_access == 2){
+            $where_array['platform_id'] = $this->auth->platform_id;
+            $current_permission = 2;
+        }else if($this_admin_access == 3){
+            $where_array['platform_id'] = $this->auth->platform_id;
+            $where_array['id'] = $this->auth->merchant_id;
+            $current_permission = 2;
+        }else{
+            if(!empty($platform_id)){
+                $where_array['platform_id'] = $platform_id;
             }
-            $list = $this->model
-                ->where($where)
-                ->where($where_array)
-                ->field($field)
-                ->order($sort, $order)
-                ->paginate($limit);
-            foreach ($list as &$vo){
-                $vo['username'] = '';
-                $vo['nickname'] = '';
-                if(!empty($vo['admin_id'])){
-                    $admin_info = Admin::where('id',$vo['admin_id'])->find();
-                    $vo['username'] = $admin_info['username']??'';
-                    $vo['nickname'] = $admin_info['nickname']??'';
-                }
-                unset($vo['admin_id']);
-                if($current_permission == 2){
-                    unset($vo['mark']);
-                }
-            }
-            $result = ['total' => $list->total(), 'rows' => $list->items(), 'current_permission' => $current_permission];
-            return json($result);
         }
-        return $this->view->fetch();
+        $list = $this->model
+            ->where($where)
+            ->where($where_array)
+            ->field($field)
+            ->order($sort, $order)
+            ->paginate($limit);
+        $rtp_list = \app\admin\model\Rtp::field('id,rtp')->select();
+
+        // 批量获取所有商户的 conf 配置（id => conf）
+        $confMap = [];
+        if ($list->count()) {
+            $ids = array_column($list->items(), 'id');
+            $confMap = Setting::where('id', 'in', $ids)->column('conf', 'id');
+        }
+        $defaultConf = ['max_reward' => 0];
+
+        foreach ($list as &$vo){
+            // 注入 setting 字段
+            $conf = isset($confMap[$vo['id']]) ? json_decode($confMap[$vo['id']], true) : $defaultConf;
+            $vo['setting'] = $conf;
+            $vo['username'] = '';
+            $vo['nickname'] = '';
+            if(!empty($vo['admin_id'])){
+                $admin_info = Admin::where('id',$vo['admin_id'])->find();
+                $vo['username'] = $admin_info['username']??'';
+                $vo['nickname'] = $admin_info['nickname']??'';
+            }
+            unset($vo['admin_id']);
+            if($current_permission == 2){
+                unset($vo['mark']);
+            }
+        }
+
+        $platform_data = Platform::column('id,name');
+        $result = [
+            'total' => $list->total(), 
+            'rows' => $list->items(), 
+            'current_permission' => $current_permission, 
+            'rtpList' => $rtp_list,
+            'platform_data' => $platform_data,
+        ];
+        return $this->jsonSucc($result);
     }
 
 
@@ -108,7 +122,7 @@ class Merchant extends Backend
      */
     public function add()
     {
-        if (false === $this->request->isAjax()) {
+        /* if (false === $this->request->isAjax()) {
 
             $room_data = Room::where('reward_status',1)->field('id,name')->select();
             foreach ($room_data as &$vo){
@@ -132,10 +146,10 @@ class Merchant extends Backend
             $this->view->assign('platformData', $platform_data);
             $this->view->assign('room_data', $room_data);
             return $this->view->fetch();
-        }
-        $params = $this->request->post('row/a');
+        } */
+        $params = $this->request->post();
         if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
         $params = $this->preExcludeFields($params);
         if ($this->dataLimit && $this->dataLimitFieldAutoFill) {
@@ -144,11 +158,11 @@ class Merchant extends Backend
         // 判断账号是否存在
         $this_admin = Admin::where('username', $params['username'])->find();
         if ($this_admin) {
-            $this->error('账号已存在');
+            return $this->jsonFail('账号已存在');
         }
         Db::startTrans();
         try {
-            $params = $this->request->post('row/a');
+            $params = $this->request->post();
             $add_data = [
                 'token' => $params['token'],
                 'secret' => $params['secret'],
@@ -156,7 +170,7 @@ class Merchant extends Backend
                 'rtp_id' => $params['rtp_id'],
                 'cash_get_url' => $params['cash_get_url'],
                 'cash_transferinout_url' => $params['cash_transferinout_url'],
-                'mark' => $params['mark'],
+                // 'mark' => $params['mark'],
                 'style_name_switch' => $params['style_name_switch'],
                 'style_bb_switch' => $params['style_bb_switch'],
                 'style_ec_switch' => $params['style_ec_switch'],
@@ -190,9 +204,9 @@ class Merchant extends Backend
             Db::commit();
         } catch (ValidateException|PDOException|\Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
-        $this->success();
+        return $this->jsonSucc();
     }
 
 
@@ -232,6 +246,13 @@ class Merchant extends Backend
      */
     public function edit($ids = null)
     {
+        $params = $this->request->post();
+        if (empty($params)) {
+            $this->error(__('Parameter %s can not be empty', ''));
+        }
+        $params = $this->preExcludeFields($params);
+        $ids = $params['id'];
+
         $AuthGroupAccessStatus = 1;
         $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');
         if($this_admin_access == 2){
@@ -249,7 +270,7 @@ class Merchant extends Backend
             $row = $this->model->where('id',$ids)->find();
         }
         if (!$row) {
-            $this->error(__('No Results were found'));
+           return $this->jsonFail(__('No Results were found')); 
         }
         $admin_select_info = Admin::where('id', $row['admin_id'])->find();
         if(!$admin_select_info){
@@ -257,9 +278,9 @@ class Merchant extends Backend
         }
         $adminIds = $this->getDataLimitAdminIds();
         if (is_array($adminIds) && !in_array($row[$this->dataLimitField], $adminIds)) {
-            $this->error(__('You have no permission'));
+            return $this->jsonFail(__('You have no permission'));
         }
-        if (false === $this->request->isPost()) {
+        /* if (false === $this->request->isPost()) {
 
             $room_data = Room::where('reward_status',1)->field('id,name')->select();
             $row['username'] = '';
@@ -272,13 +293,9 @@ class Merchant extends Backend
             $this->view->assign('room_data', $room_data);
             $this->view->assign('merchant_id', $row['id']);
             return $this->view->fetch();
-        }
+        } */
 
-        $params = $this->request->post('row/a');
-        if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
-        }
-        $params = $this->preExcludeFields($params);
+        
         //是否采用模型验证
         if ($this->modelValidate) {
             $name = str_replace("\\model\\", "\\validate\\", get_class($this->model));
@@ -290,7 +307,7 @@ class Merchant extends Backend
         $admin_data = [];
         if (!empty($params['password'])) {
             if (!Validate::is($params['password'], '\S{6,16}')) {
-                $this->error('密码长度必须在6-30位之间，不能包含空格"');
+                return $this->jsonFail('密码长度必须在6-30位之间，不能包含空格"');
             }
             $admin_data['salt'] = Random::alnum();
             $admin_data['password'] = $this->auth->getEncryptPassword($params['password'], $admin_data['salt']);
@@ -303,13 +320,13 @@ class Merchant extends Backend
                 $this_admin_where['username'] = ['eq', $params['username']];
                 $this_admin = Admin::where($this_admin_where)->find();
                 if ($this_admin) {
-                    $this->error('账号已存在');
+                    return $this->jsonFail('账号已存在');
                 }
             }else{
                 $this_admin_where['username'] = ['eq', $params['username']];
                 $this_admin = Admin::where('username',$params['username'])->find();
                 if ($this_admin) {
-                    $this->error('账号已存在');
+                    return $this->jsonFail('账号已存在');
                 }
             }
             $update['name'] = $params['name'];
@@ -357,9 +374,9 @@ class Merchant extends Backend
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
-        $this->success();
+        return $this->jsonSucc();
     }
 
 }

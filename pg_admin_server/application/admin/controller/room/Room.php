@@ -68,7 +68,7 @@ class Room extends Backend
 
     public function api_post()
     {
-        if ($this->request->isAjax()) {
+        if ($this->request->isPost()) {
             $room_id = $this->request->post('room_id',0);
             $url = Env::get('app.game_request', '')."/api/config/update";
             $curl = curl_init();
@@ -88,7 +88,7 @@ class Room extends Backend
             $data = curl_exec($curl);
             //关闭URL请求
             curl_close($curl);
-            $this->success();
+            return $this->jsonSucc();
         }
         $room_data = $this->model->where('status',1)->column('id,name');
         $this->assign('room_data',$room_data);

@@ -47,6 +47,13 @@ class Setting extends Backend
      */
     public function edit($ids = null)
     {
+        $params = $this->request->post();
+        if (empty($params)) {
+           return $this->jsonFail(__('Parameter %s can not be empty', ''));
+        }
+        $params = $this->preExcludeFields($params);
+
+        $ids = $params['id'];
         $AuthGroupAccessStatus = 1;
         $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');
         if($this_admin_access == 2){
@@ -62,10 +69,9 @@ class Setting extends Backend
         }else{
             $row = Merchants::where('id',$ids)->find();
         }
-
-
+        
         if (!$row) {
-            $this->error(__('No Results were found'));
+           return $this->jsonFail(__('No Results were found'));
         }
         
         $admin_select_info = Admin::where('id', $row['admin_id'])->find();
@@ -74,38 +80,24 @@ class Setting extends Backend
         }
         $adminIds = $this->getDataLimitAdminIds();
         if (is_array($adminIds) && !in_array($row[$this->dataLimitField], $adminIds)) {
-            $this->error(__('You have no permission'));
+            return $this->jsonFail(__('You have no permission'));
+        }
+
+        $setting = $this->model->where('id', $row->id)->field('id,conf')->find();
+        if (!$setting) {
+            $data  = [
+                'max_reward' =>  0,
+            ];
+            $insert = [
+                'id' => $row['id'],
+                'conf' => json_encode($data),
+            ];
+            $this->model->save($insert);
         }
         
-        if (false === $this->request->isPost()) {
-
-            $setting = $this->model->where('id',$row->id)->field('id,conf')->find();
-            if(!$setting){
-                $data  = [
-                    'max_reward' =>  0,
-                ];
-                $insert = [
-                    'id'=>$row['id'],
-                    'conf' => json_encode($data),
-                ];
-                $this->model->save($insert);
-                $setting = $this->model->where('id',$row->id)->field('id,conf')->find();
-            }
-            
-            $this->view->assign('row', json_decode($setting->conf,true));
-         
-            return $this->view->fetch();
-        }
-
-        $params = $this->request->post('row/a');
-        if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
-        }
-        $params = $this->preExcludeFields($params);
-
         $max_reward = (int)$params['max_reward'];
         if($max_reward < 0 || !is_numeric($params['max_reward'])){
-            $this->error('请填入正确的数字，且必须大于等于0');
+            return $this->jsonFail('请填入正确的数字，且必须大于等于0');
         }
 
         $data  = [
@@ -122,11 +114,12 @@ class Setting extends Backend
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
+       
         $room = new \app\admin\controller\room\Room(); 
-        $room->api_post();
-        $this->success();
+        return $room->api_post();
+        // return $this->jsonSucc();
     }
 
 
