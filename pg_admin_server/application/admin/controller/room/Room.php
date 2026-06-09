@@ -40,29 +40,25 @@ class Room extends Backend
 
     public function index()
     {
-        //当前是否为关联查询
-        $this->relationSearch = false;
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if ($this->request->isAjax()) {
-            //如果发送的来源是Selectpage，则转发到Selectpage
-            if ($this->request->request('keyField')) {
-                return $this->selectpage();
-            }
-            list($where, $sort, $order, $offset, $limit) = $this->buildparams();
-            $list = $this->model
-                    ->where($where)
-                    ->order($sort, $order)
-                    ->paginate($limit);
-            $TypeList = Type::column('name','id');
-            foreach ($list as $row) {
-                $row->visible(['id','name','status','dir','history_table_name','type','reward_status','type_id']);
-                $row['type_id'] = $TypeList[$row['type_id']]??'';
-            }
-            $result = array("total" => $list->total(), "rows" => $list->items());
-            return json($result);
+        //如果发送的来源是Selectpage，则转发到Selectpage
+        if ($this->request->request('keyField')) {
+            return $this->selectpage();
         }
-        return $this->view->fetch();
+        list($where, $sort, $order, $offset, $limit) = $this->buildparams(['name' => 'like']);
+        $list = $this->model
+            ->where($where)
+            ->order($sort, $order)
+            ->paginate($limit);
+        $TypeList = Type::column('name', 'id');
+        foreach ($list as $row) {
+            $row->visible(['id', 'name', 'status', 'dir', 'history_table_name', 'type', 'reward_status', 'type_id']);
+        }
+        $result = [
+            'total' => $list->total(),
+            'rows' => $list->items(),
+            'type_list' => $TypeList,
+        ];
+        return $this->jsonSucc($result);
     }
 
 
@@ -149,12 +145,12 @@ class Room extends Backend
 
     public function batch_updates($ids)
     {
-        if (false === $this->request->isPost()) {
-            return $this->view->fetch();
-        } else {
-            $params = $this->request->post('row/a');
-            $this->model->where('id','in',$ids)->update(['type_id'=>$params['type_id']]);
-            $this->success('配置成功');
+        $params = $this->request->post();
+        $result = $this->model->where('id', 'in', $ids)->update(['type_id' => $params['type_id']]);
+        if($result){
+           return $this->jsonSucc();
+        }else{
+            return $this->jsonError('配置失败');
         }
     }
 

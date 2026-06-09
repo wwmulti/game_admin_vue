@@ -513,6 +513,7 @@
   "canYuRenShu": "Participant Count",
   "youXiDaiMa": "Game Code",
   "youXiMingCheng": "Game Name",
+  "youXiMingChengBuNengWeiKong": "Game name cannot be empty",
   "fenLei": "Category",
   "youXiKaiGuan": "Game Switch",
   "shiFouFanJiang": "Bonus Payout",
@@ -532,6 +533,7 @@
   "paiXu": "Sort",
   "guanLiYuanId": "Admin ID",
   "fangjianId": "Room ID",
+  "liShiBiaoMingCheng": "Log Table Name",
   "qiHao": "Period No.",
   "xiGaiHaoMa": "Modify Number",
   "piLiangBianJi": "Batch Edit",
@@ -1133,6 +1135,7 @@
   "tianJiaPingTai": "Add Platform",
   "bianJiPingTai": "Edit Platform",
   "queDingYaoShanChuPingTai": "Are you sure you want to delete platform 【{0}】?",
+  "queDingYaoShanChuYouXi": "Are you sure you want to delete game",
   "queDingYaoShanChuXuanZhongPingTai": "Are you sure you want to delete the selected platforms?",
   "queDingYaoShanChuXuanZhongRiZhi": "Are you sure you want to delete the selected logs?",
   "suoShuPingTai": "Platform",
@@ -1142,5 +1145,6 @@
   "peiZhiShuaXin": "Refresh Config",
   "peiZhiShuaXinTiShi": "Click to apply changes after merchant modification",
   "queDingYaoShuaXinPeiZhi": "Are you sure to refresh config?",
-  "wanJiaUID": "Player UID"
+  "wanJiaUID": "Player UID",
+  "shuaXinPeiZhi": "Refresh Config"
 }

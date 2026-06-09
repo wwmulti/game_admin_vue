@@ -248,6 +248,7 @@ class Backend extends Controller
         }
         Lang::range($lang);
 
+        $this->auth = Auth::instance();
         if (!\think\Request::instance()->isCli()) {
             $controller = strtolower(request()->controller());
             $action = strtolower(request()->action());
@@ -272,6 +273,8 @@ class Backend extends Controller
                     );
                 }
 
+                $this->auth->userInfo = $this->getAdmin();
+
                 $roleService = new SystemRoleServices();
                 if ($this->adminId && !$roleService->verifiAuth($rule, $this->adminId)) {
                     throw new \think\exception\HttpResponseException(
@@ -281,8 +284,6 @@ class Backend extends Controller
             }
 
             $this->request = request();
-            $this->auth = Auth::instance();
-            $this->auth->userInfo = $this->getAdmin();
         }
     }
 

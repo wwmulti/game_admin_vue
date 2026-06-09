@@ -97,7 +97,8 @@ class System extends Backend
         //这里需要针对name做唯一验证
         $ruleValidate = \think\Loader::validate('AuthRule', 'validate', false, 'admin');
         $ruleValidate->rule([
-            'name' => 'require|unique:AuthRule,name,' . $row->id,
+            'name' => 'require|unique:AuthRuleApi,name,' . $row->id,
+            'route_name' => 'require|unique:AuthRuleApi,route_name,' . $row->id,
         ]);
         $result = $row->validate()->save($params);
         if ($result === false) {
@@ -138,8 +139,18 @@ class System extends Backend
             return $this->jsonFail($validate->getError());
         }
 
-
         $model = model('app\common\model\AuthRule');
+        $check = $model->where('name', '=', $params['name'])->find();
+        if ($check) {
+            return $this->jsonFail(__('The name already exists'));
+        }
+
+        $check1 = $model->where('route_name', '=', $params['route_name'])->find();
+        if ($check1) {
+            return $this->jsonFail(__('The route_name already exists'));    
+        }
+
+        
         $result = $model->create($params);
         if ($result === false) {
             return $this->jsonFail($model->getError());

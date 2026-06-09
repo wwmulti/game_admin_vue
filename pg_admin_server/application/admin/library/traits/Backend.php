@@ -102,7 +102,7 @@ trait Backend
         if (false === $this->request->isPost()) {
             return $this->view->fetch();
         }
-        $params = $this->request->post('row/a');
+        $params = $this->request->post();
         if (empty($params)) {
             return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
@@ -142,6 +142,10 @@ trait Backend
      */
     public function edit($ids = null)
     {
+        $ids = $ids ?: $this->request->post("ids");
+        if (empty($ids)) {
+            return $this->jsonFail(__("Invalid parameters"));
+        }
         $row = $this->model->get($ids);
         if (!$row) {
             return $this->jsonFail(__('No Results were found'));
@@ -154,7 +158,7 @@ trait Backend
             $this->view->assign('row', $row);
             return $this->view->fetch();
         }
-        $params = $this->request->post('row/a');
+        $params = $this->request->post();
         if (empty($params)) {
             return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
@@ -167,6 +171,43 @@ trait Backend
                 $name = str_replace("\\model\\", "\\validate\\", get_class($this->model));
                 $validate = is_bool($this->modelValidate) ? ($this->modelSceneValidate ? $name . '.edit' : $name) : $this->modelValidate;
                 $row->validateFailException()->validate($validate);
+            }
+            $result = $row->allowField(true)->save($params);
+            Db::commit();
+        } catch (ValidateException|PDOException|Exception $e) {
+            Db::rollback();
+            return $this->jsonFail($e->getMessage());
+        }
+        if (false === $result) {
+            return $this->jsonFail(__('No rows were updated'));
+        }
+        return $this->jsonSucc();
+    }
+
+    // 属性更新
+    public function editAttr($ids = null) 
+    {
+        $ids = $ids ?: $this->request->post("ids");
+        if (empty($ids)) {
+            return $this->jsonFail(__("Invalid parameters"));
+        }
+        $row = $this->model->get($ids);
+        if (!$row) {
+            return $this->jsonFail(__('No Results were found'));
+        }
+        $params = $this->request->post();
+        if (empty($params)) {
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
+        }
+        $params = $this->preExcludeFields($params);
+        $result = false;
+        Db::startTrans();
+        try {
+            //是否采用模型验证
+            if ($this->modelValidate) {
+                $name = str_replace("\\model\\", "\\validate\\", get_class($this->model));
+                $validate = is_bool($this->modelValidate) ? ($this->modelSceneValidate ? $name . '.edit' : $name) : $this->modelValidate;
+                $this->model->validateFailException()->validate($validate);
             }
             $result = $row->allowField(true)->save($params);
             Db::commit();

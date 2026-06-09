@@ -24,7 +24,9 @@ class AuthRule extends Validate
      * 提示消息
      */
     protected $message = [
-        'name.format' => 'URL规则只能是小写字母、数字、下划线和/组成'
+        'name.format' => 'URL规则只能是小写字母、数字、下划线和/组成',
+        'name.unique' => '请求地址已存在',
+        'route_name.unique' => '路由名称已存在',
     ];
 
     /**

@@ -513,6 +513,7 @@
   "canYuRenShu": "参与人数",
   "youXiDaiMa": "游戏代码",
   "youXiMingCheng": "游戏名称",
+  "youXiMingChengBuNengWeiKong": "游戏名称不能为空",
   "fenLei": "分类",
   "youXiKaiGuan": "游戏开关",
   "shiFouFanJiang": "是否返奖",
@@ -532,6 +533,7 @@
   "paiXu": "排序",
   "guanLiYuanId": "管理员id",
   "fangjianId": "房间id",
+  "liShiBiaoMingCheng": "日志表名称",
   "qiHao": "期号",
   "xiGaiHaoMa": "修改号码",
   "piLiangBianJi": "批量编辑",
@@ -1134,6 +1136,7 @@
   "tianJiaPingTai": "添加平台",
   "bianJiPingTai": "编辑平台",
   "queDingYaoShanChuPingTai": "确定要删除平台【{0}】吗？",
+  "queDingYaoShanChuYouXi": "确定要删除游戏",
   "queDingYaoShanChuXuanZhongPingTai": "确定要删除选中的平台吗？",
   "queDingYaoShanChuXuanZhongRiZhi": "确定要删除选中的日志吗？",
   "suoShuPingTai": "所属平台",
@@ -1143,5 +1146,6 @@
   "peiZhiShuaXin": "配置刷新",
   "peiZhiShuaXinTiShi": "修改商户后需点击此按钮才能生效",
   "queDingYaoShuaXinPeiZhi": "确定要刷新配置吗？",
-  "wanJiaUID": "玩家UID"
+  "wanJiaUID": "玩家UID",
+  "shuaXinPeiZhi": "刷新配置"
 }

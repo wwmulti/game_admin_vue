@@ -181,3 +181,53 @@ export function pullMerchantGame(data: any) {
     data
   })
 }
+
+// 游戏列表（旧版 room/room）
+export function getRoomList(params: any) {
+  return request.get<any>({
+    url: '/room/room/index',
+    params
+  })
+}
+
+export function addRoom(data: any) {
+  return request.post<any>({
+    url: '/room/room/add',
+    data
+  })
+}
+
+export function editRoom(data: any) {
+  return request.post<any>({
+    url: '/room/room/edit',
+    data
+  })
+}
+
+export function deleteRoom(data: any) {
+  return request.post<any>({
+    url: '/room/room/del',
+    data
+  })
+}
+
+export function editRoomAttr(data: any) {
+  return request.post<any>({
+    url: '/room/room/editAttr',
+    data
+  })
+}
+
+export function batchUpdateRoomCategory(data: any) {
+  return request.post<any>({
+    url: '/room/room/batch_updates',
+    data
+  })
+}
+
+export function refreshRoomConfig(data: any) {
+  return request.post<any>({
+    url: '/room/room/api_post',
+    data
+  })
+}

@@ -84,8 +84,9 @@ class Auth extends \fast\Auth
         $admin->loginip = request()->ip();
         $admin->token = Random::uuid();
         $admin->save();
-        Session::set("admin", $admin->toArray());
-        Session::set("admin.safecode", $this->getEncryptSafecode($admin));
+        // Session::set("admin", $admin->toArray());
+        // Session::set("admin.safecode", $this->getEncryptSafecode($admin));
+        $this->userInfo = $admin;
         $this->keeplogin($admin, $keeptime);
         return true;
     }
@@ -243,10 +244,11 @@ class Auth extends \fast\Auth
         if ($this->logined) {
             return true;
         }
-        if ($this->autologin()){
+        /* if ($this->autologin()){
             return true;
-        }
-        $admin = Session::get('admin');
+        } */
+        // $admin = Session::get('admin');
+        $admin = $this->userInfo;
         if (!$admin) {
             return false;
         }
