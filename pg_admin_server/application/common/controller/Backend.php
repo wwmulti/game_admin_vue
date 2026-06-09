@@ -407,6 +407,15 @@ class Backend extends Controller
                     }
                     break;
 
+                case 'dates':
+                    // dates 格式：["开始时间","结束时间"]
+                    if (is_array($value) && count($value) >= 2) {
+                        $start = $value[0];
+                        $end = strlen($value[1]) > 10 ? $value[1] : $value[1] . ' 23:59:59';
+                        $where[$field] = [['>=', $start], ['<=', $end]];
+                    }
+                    break;
+
                 case 'date':
                     $timestamp = strtotime($value);
                     if ($timestamp !== false) {

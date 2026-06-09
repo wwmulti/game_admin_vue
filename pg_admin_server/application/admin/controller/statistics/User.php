@@ -39,16 +39,7 @@ class User extends Backend
      */
     public function index()
     {
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if (false === $this->request->isAjax()) {
-            return $this->view->fetch();
-        }
-        //如果发送的来源是 Selectpage，则转发到 Selectpage
-        if ($this->request->request('keyField')) {
-            return $this->selectpage();
-        }
-        [$where, $sort, $order, $offset, $limit] = $this->buildparams();
+        [$where, $sort, $order, $offset, $limit] = $this->buildparams(['date_time' => 'dates']);
 
         $current_permission = 2;
         $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');
@@ -114,8 +105,13 @@ class User extends Backend
             $data[] = $supplier_data;
         }
         $data[] = $total;
-        $result = ['total' => $list->total(), 'rows' => $data,'current_permission'=>$current_permission];
-        return json($result);
+        $result = [
+            'total' => $list->total(),
+            'rows' => $data,
+            'current_permission' => $current_permission,
+            'merchant_name' => Merchants::column('name', 'id'),
+        ];
+        return $this->jsonSucc($result);
     }
 
 
