@@ -37,8 +37,8 @@ class User extends Backend
         } else if ($this_admin_access == 3) {
             return [];
         }
-        $platform_data = Platform::where($where_array)->column('id,name');
-        return json($platform_data);
+        $platform_data = Platform::where($where_array)->column('name', 'id');
+        return $platform_data;
     }
 
 
@@ -51,8 +51,8 @@ class User extends Backend
         } else if ($this_admin_access == 3) {
             return [];
         }
-        $platform_data = Merchants::where($where_array)->column('id,name');
-        return json($platform_data);
+        $platform_data = Merchants::where($where_array)->column('name', 'id');
+        return $platform_data;
     }
 
     /**
@@ -60,53 +60,62 @@ class User extends Backend
      */
     public function index()
     {
-        //当前是否为关联查询
-        $this->relationSearch = false;
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if ($this->request->isAjax()) {
-            //如果发送的来源是Selectpage，则转发到Selectpage
-            if ($this->request->request('keyField')) {
-                return $this->selectpage();
+        $filter = json_decode($this->request->get("filter"),true);
+        if(isset($filter['money'])){
+            $gold = explode(',',$filter['money']);
+            if(count($gold) == 2){
+                $filter['money'] = ($gold[0]*1000).','.($gold[1]*1000);
+                $this->request->get(["filter"=>json_encode($filter)]);
             }
-
-            $filter = json_decode($this->request->get("filter"),true);
-            if(isset($filter['money'])){
-                $gold = explode(',',$filter['money']);
-                if(count($gold) == 2){
-                    $filter['money'] = ($gold[0]*1000).','.($gold[1]*1000);
-                    $this->request->get(["filter"=>json_encode($filter)]);
-                }
-            }
-
-            list($where, $sort, $order, $offset, $limit) = $this->buildparams();
-            $where_array = [];
-            $MerchantArray = Merchants::column('name', 'id');
-            $PlatformArray = Platform::column('name', 'id');
-            $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');
-            if ($this_admin_access == 2) {
-                $where_array['platform_id'] = ['eq', $this->auth->platform_id];
-            } else if ($this_admin_access == 3) {
-                $where_array['merchant_id'] = ['eq', $this->auth->merchant_id];
-            }
-            $list = $this->model
-                ->where($where)
-                ->where($where_array)
-                ->order($sort, $order)
-                ->paginate($limit);
-            $ids = [];
-            foreach ($list as &$row) {
-                $ids[] =  $row['id'];
-                $row->visible(['id','platform_id', 'merchant_id', 'remote_uid', 'name', 'created_at', 'money']);
-                $row['platform_id'] = $PlatformArray[$row['platform_id']] ?? '';
-                $row['merchant_id'] = $MerchantArray[$row['merchant_id']] ?? '';
-                $row['money'] = FormatMoney($row['money']);
-            }
-            $this->batch_update_balance(implode(',',$ids));
-            $result = array("total" => $list->total(), "rows" => $list->items());
-            return json($result);
         }
-        return $this->view->fetch();
+
+        list($where, $sort, $order, $offset, $limit) = $this->buildparams(['name' => 'like'], ['created_at']);
+
+        $where_array = [];
+        /* $MerchantArray = Merchants::column('name', 'id');
+        $PlatformArray = Platform::column('name', 'id'); */
+        $MerchantArray = $this->merchant_name();
+        $PlatformArray = $this->platform_name();
+        $rtpArray = \app\admin\model\Rtp::column('rtp', 'id');
+
+        $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');
+        if ($this_admin_access == 2) {
+            $where_array['platform_id'] = ['eq', $this->auth->platform_id];
+        } else if ($this_admin_access == 3) {
+            $where_array['merchant_id'] = ['eq', $this->auth->merchant_id];
+        }
+        $params = $this->request->get();
+        $createAt = $params['created_at'] ?? [];
+        $field = 'created_at';
+        if (is_array($createAt) && count($createAt) >= 2) {
+            $start = $createAt[0];
+            $end = strlen($createAt[1]) > 10 ? $createAt[1] : $createAt[1] . ' 23:59:59';
+            $where[$field] = [['>=', $start], ['<', $end]];
+        }
+
+        $list = $this->model
+            ->where($where)
+            ->where($where_array)
+            ->order($sort, $order)
+            ->paginate($limit);
+        $ids = [];
+        foreach ($list as &$row) {
+            $ids[] =  $row['id'];
+            // $row->visible(['id','platform_id', 'merchant_id', 'remote_uid', 'name', 'created_at', 'money', 'rtp_id']);
+            $row['platform_id'] = $PlatformArray[$row['platform_id']] ?? '';
+            $row['merchant_id'] = $MerchantArray[$row['merchant_id']] ?? '';
+            $row['money'] = FormatMoney($row['money']);
+            $row['rtp'] = $rtpArray[$row['rtp_id']] ?? '';
+        }
+        $this->batch_update_balance(implode(',',$ids));
+        $result = [
+            "total" => $list->total(), 
+            "rows" => $list->items(),
+            "platform_name" => $PlatformArray,
+            "merchant_name" => $MerchantArray,
+            "rtp" => $rtpArray,
+        ];
+        return $this->jsonSucc($result);
     }
 
 
@@ -128,7 +137,7 @@ class User extends Backend
     public function update_balance()
     {
         if ($this->request->isPost()) {
-            $row = $this->request->get();
+            $row = $this->request->post();
             $user_id = $row['user_id'];
             $this_user = $this->model->where('id', $user_id)->find();
             if ($this_user) {
@@ -143,14 +152,14 @@ class User extends Backend
                     if (isset($return_data['data']['balance_amount']) && $return_data) {
                         $this->model->where('id', $user_id)->update(['money' => $return_data['data']['balance_amount']]);
                     } else {
-                        $this->error('更新失败，接口未返回最新余额');
+                        return $this->jsonFail('更新失败，接口未返回最新余额');
                     }
-                    $this->success();
+                    return $this->jsonSucc();
                 } else {
-                    $this->error('渠道不存在');
+                    return $this->jsonFail('渠道不存在');
                 }
             } else {
-                $this->error('用户不存在');
+                return $this->jsonFail('用户不存在');
             }
         }
     }

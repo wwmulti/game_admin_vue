@@ -1,42 +1,39 @@
 import request from '@/utils/http'
 
-export function userList(params: any) {
+// 用户列表
+export function getUserList(params: any) {
   return request.get<any>({
-    url: '/api/user/userList',
+    url: '/user/user/index',
     params
   })
 }
 
-export function addUser(data: any) {
-  return request.post<any>({
-    url: '/api/user/addUser',
-    data
-  })
-}
-
-export function editUser(data: any) {
-  return request.post<any>({
-    url: '/api/user/editUser',
-    data
-  })
-}
-
-export function deleteUser(data: any) {
-  return request.post<any>({
-    url: '/api/user/deleteUser',
-    data
-  })
-}
-
-export function configList(params: any) {
+// 平台选项 {id: name}
+export function getPlatformName() {
   return request.get<any>({
-    url: '/api/user/configList',
-    params
+    url: '/user/user/platform_name'
   })
 }
-export function editConfig(data: any) {
+
+// 商户选项 {id: name}
+export function getMerchantName() {
+  return request.get<any>({
+    url: '/user/user/merchant_name'
+  })
+}
+
+// 更新用户余额
+export function updateBalance(user_id: number) {
   return request.post<any>({
-    url: '/api/user/editConfig',
-    data
+    url: '/user/user/update_balance',
+    params: { user_id }
+  })
+}
+
+// 游戏记录详情列表
+export function getUserGameLog(params: any) {
+  return request.get<any>({
+    url: '/user/details/index',
+    params
   })
 }

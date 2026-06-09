@@ -1141,5 +1141,6 @@
   "qiTa": "Other",
   "peiZhiShuaXin": "Refresh Config",
   "peiZhiShuaXinTiShi": "Click to apply changes after merchant modification",
-  "queDingYaoShuaXinPeiZhi": "Are you sure to refresh config?"
+  "queDingYaoShuaXinPeiZhi": "Are you sure to refresh config?",
+  "wanJiaUID": "Player UID"
 }
