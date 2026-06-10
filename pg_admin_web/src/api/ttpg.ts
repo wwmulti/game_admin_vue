@@ -183,3 +183,12 @@ export function deleteRtpTemplate(params: any) {
     params
   })
 }
+
+// === TTPG Statistics 接口 ===
+
+export function getTtpgStatistics(params: any) {
+  return request.get<any>({
+    url: '/ttpg/ttpg_statistics/index',
+    params
+  })
+}
