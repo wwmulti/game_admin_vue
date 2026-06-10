@@ -40,45 +40,36 @@ class RtpDetails extends Backend
     public function index($ids = null)
     {
         $get = $this->request->get();
-        //当前是否为关联查询
-        $this->relationSearch = false;
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if ($this->request->isAjax()) {
-            //如果发送的来源是Selectpage，则转发到Selectpage
-            if ($this->request->request('keyField')) {
-                return $this->selectpage();
-            }
-            list($where, $sort, $order, $offset, $limit) = $this->buildparams();
+        list($where, $sort, $order, $offset, $limit) = $this->buildparams([], ['room_id', 'rtp_id']);
 
-            $room_name = Room::where('id',$get['room_id'])->value('name');
-            $list = $this->model
-                ->where('room_id',$get['room_id'])
-                ->where('rtp_id',$get['rtp_id'])
-                ->where($where)
-                ->order($sort, $order)
-                ->paginate($limit);
-            $MerchantsData = \app\admin\model\Rtp::column('id,rtp');
-            foreach ($list as &$row) {
-                $row['id'] = $row['room_id'].':'.$row['bet_amount'];
-                $row['bet_amount'] = FormatMoney($row['bet_amount']);
-                $row['name'] = $room_name;
-                $row['rtp_ids'] = $row['rtp_id'];
-                $row['rtp_id'] = $MerchantsData[$row['rtp_id']]??'';
-                $row['reward_id'] = (string)$row['reward_id'];
-            }
-            $result = array("total" => $list->total(), "rows" => $list->items());
-
-            return json($result);
-        }
-        $this->assign('room_id',$get['room_id']);
-        $this->assign('rtp_id',$get['rtp_id']);
-        $RoomGroupConfig = RoomGroupConfig::where('room_id',$get['room_id'])->field('id value,name text')->select();
-        foreach ($RoomGroupConfig as &$vo){
+        $room_name = Room::where('id', $get['room_id'])->value('name');
+        $list = $this->model
+            ->where('room_id', $get['room_id'])
+            ->where('rtp_id', $get['rtp_id'])
+            ->where($where)
+            ->order($sort, $order)
+            ->paginate($limit);
+        $MerchantsData = \app\admin\model\Rtp::column('id,rtp');
+        /* $RoomGroupConfig = RoomGroupConfig::where('room_id', $get['room_id'])->field('id value,name text')->select();
+        foreach ($RoomGroupConfig as &$vo) {
             $vo['value'] = (string)$vo['value'];
+        } */
+        $RoomGroupConfig = RoomGroupConfig::where('room_id', $get['room_id'])->column('name','id');
+        foreach ($list as &$row) {
+            $row['id'] = $row['room_id'] . ':' . $row['bet_amount'];
+            $row['bet_amount'] = FormatMoney($row['bet_amount']);
+            $row['name'] = $room_name;
+            $row['rtp_ids'] = $row['rtp_id'];
+            $row['rtp_id'] = $MerchantsData[$row['rtp_id']] ?? '';
+            $row['reward_id'] = (string)$row['reward_id'];
         }
-        $this->assign('RoomGroupConfig',json_encode($RoomGroupConfig));
-        return $this->view->fetch();
+        $result = [
+            "total" => $list->total(),
+            "rows" => $list->items(),
+            "room_group_config" => $RoomGroupConfig,
+        ];
+
+        return $this->jsonSucc($result);
     }
 
     /**
@@ -90,12 +81,7 @@ class RtpDetails extends Backend
     public function add($ids = null)
     {
         $get = $this->request->get();
-        if (false === $this->request->isPost()) {
-            $RoomGroupConfig = collection(RoomGroupConfig::where('room_id',$get['room_id'])->column('name','id'))->toArray();
-            $this->assign('RoomGroupConfig',$RoomGroupConfig);
-            return $this->view->fetch();
-        }
-        $params = $this->request->post('row/a');
+        $params = $this->request->post();
         $result = false;
         Db::startTrans();
         try {
@@ -111,12 +97,12 @@ class RtpDetails extends Backend
             Db::commit();
         } catch (ValidateException|PDOException|\Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
         if ($result === false) {
-            $this->error(__('No rows were inserted'));
+            return $this->jsonFail(__('No rows were inserted'));
         }
-        $this->success();
+        return $this->jsonSucc();
     }
     /**
      * 编辑
@@ -129,18 +115,9 @@ class RtpDetails extends Backend
     public function edit($ids = null)
     {
         $get = $this->request->get();
-        if (false === $this->request->isPost()) {
-            $where['bet_amount'] = ['eq',WriteMoney($get['bet_amount'])];
-            $where['room_id'] = ['eq',$get['room_id']];
-            $row = $this->model->where($where)->find();
-            $row['old_bet_amount'] = $row['bet_amount'];
-            $row['bet_amount'] = FormatMoney($row['bet_amount']);
-            $this->view->assign('row', $row);
-            return $this->view->fetch();
-        }
-        $params = $this->request->post('row/a');
+        $params = $this->request->post();
         if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
 
         $result = false;
@@ -154,14 +131,15 @@ class RtpDetails extends Backend
             Db::commit();
         } catch (ValidateException|PDOException|\Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
         if (false === $result) {
-            $this->error(__('No rows were updated'));
+            return $this->jsonFail(__('No rows were updated'));
         }
-        $this->success();
+        return $this->jsonSucc();
     }
 
+    // 下拉编辑
     public function edit_update($ids = NULL)
     {
         if ($this->request->isPost()) {
@@ -172,39 +150,34 @@ class RtpDetails extends Backend
             $update_data['reward_id'] = $params['reward_id'];
             $update_data['group_id'] = $RoomGroupConfig[$params['reward_id']];
             $this->model->where($where)->update($update_data);
-            $this->success();
+            return $this->jsonSucc();
         }
     }
 
+    // 一键配置
     public function batch_updates($ids)
     {
         $get = $this->request->get();
-        if (false === $this->request->isPost()) {
-            $RoomGroupConfig = RoomGroupConfig::where('room_id',$get['room_id'])->field('id,name')->select();
-            $this->assign('RoomGroupConfig',json_encode($RoomGroupConfig));
-            $this->view->assign('list', $RoomGroupConfig);
-            return $this->view->fetch();
-        } else {
-            $params = $this->request->post('row/a');
-            $RoomGroupConfig = RoomGroupConfig::where('id',$params['reward_id'])->value('group_ids');
-            $ids_array = explode(',',$get['ids']);
-            foreach ($ids_array as $vo){
-                $where['room_id'] = ['eq',$get['room_id']];
-                $where['rtp_id'] = ['eq',$get['rtp_id']];
-                $where['bet_amount'] = ['eq',WriteMoney($vo)];
-                $update_data['reward_id'] = $params['reward_id'];
-                $update_data['group_id'] = $RoomGroupConfig;
-                $this->model->where($where)->update($update_data);
-            }
-            $this->success('配置成功');
+        $params = $this->request->post();
+        $RoomGroupConfig = RoomGroupConfig::where('id', $params['reward_id'])->value('group_ids');
+        $ids_array = explode(',', $get['ids']);
+        foreach ($ids_array as $vo) {
+            $where['room_id'] = ['eq', $get['room_id']];
+            $where['rtp_id'] = ['eq', $get['rtp_id']];
+            $where['bet_amount'] = ['eq', WriteMoney($vo)];
+            $update_data['reward_id'] = $params['reward_id'];
+            $update_data['group_id'] = $RoomGroupConfig;
+            $this->model->where($where)->update($update_data);
         }
+        return $this->jsonSucc('配置成功');
     }
+
     public function batch_merchant($ids)
     {
         if (false === $this->request->isPost()) {
             return $this->view->fetch();
         } else {
-            $params = $this->request->post('row/a');
+            $params = $this->request->post();
             $ids_array = explode(',',$ids);
             foreach ($ids_array as $vo){
                 $where_array = explode(':',$vo);
@@ -216,33 +189,28 @@ class RtpDetails extends Backend
             $this->success('配置成功');
         }
     }
+
+    // 一键添加配置
     public function batch_config()
     {
         $get = $this->request->get();
-        if (false === $this->request->isPost()) {
-            $RoomGroupConfig = RoomGroupConfig::where('room_id',$get['room_id'])->field('id,name')->select();
-            $this->assign('RoomGroupConfig',json_encode($RoomGroupConfig));
-            $this->view->assign('list', $RoomGroupConfig);
-            return $this->view->fetch();
-        } else {
-            $params = $this->request->post('row/a');
-            $RoomGroupConfig = RoomGroupConfig::where('id',$params['reward_id'])->value('group_ids');
-            $this->model->where('room_id',$get['room_id'])
-                ->where('rtp_id',$get['rtp_id'])
-                ->delete();
-            $BetAmountConfig = BetAmountConfig::where('room_id',$get['room_id'])->select();
-            $add_data = [];
-            foreach ($BetAmountConfig as $vo){
-                $add_data[] = [
-                    'room_id'=>$get['room_id'],
-                    'rtp_id'=>$get['rtp_id'],
-                    'bet_amount'=>$vo['bet_amount'],
-                    'reward_id'=>$params['reward_id'],
-                    'group_id'=>$RoomGroupConfig,
-                ];
-            }
-            $this->model->insertAll($add_data);
-            $this->success('配置成功');
+        $params = $this->request->post();
+        $RoomGroupConfig = RoomGroupConfig::where('id', $params['reward_id'])->value('group_ids');
+        $this->model->where('room_id', $get['room_id'])
+            ->where('rtp_id', $get['rtp_id'])
+            ->delete();
+        $BetAmountConfig = BetAmountConfig::where('room_id', $get['room_id'])->select();
+        $add_data = [];
+        foreach ($BetAmountConfig as $vo) {
+            $add_data[] = [
+                'room_id' => $get['room_id'],
+                'rtp_id' => $get['rtp_id'],
+                'bet_amount' => $vo['bet_amount'],
+                'reward_id' => $params['reward_id'],
+                'group_id' => $RoomGroupConfig,
+            ];
         }
+        $this->model->insertAll($add_data);
+        return $this->jsonSucc('配置成功');
     }
 }

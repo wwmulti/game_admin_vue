@@ -94,3 +94,92 @@ export function deleteTemplate(params: any) {
     params
   })
 }
+
+// === RTP 接口 ===
+
+export function getRtpList(params: any) {
+  return request.get<any>({
+    url: '/ttpg/rtp/index',
+    params
+  })
+}
+
+// === RTP Detail 接口 ===
+
+export function getRtpDetailList(params: any) {
+  return request.get<any>({
+    url: '/ttpg/rtp_details/index',
+    params
+  })
+}
+
+export function updateRtpDetailReward(data: any) {
+  return request.post<any>({
+    url: '/ttpg/rtp_details/edit_update',
+    data
+  })
+}
+
+export function addRtpDetail(data: any, params: any) {
+  return request.post<any>({
+    url: '/ttpg/rtp_details/add',
+    data,
+    params
+  })
+}
+
+export function editRtpDetail(data: any, params: any) {
+  return request.post<any>({
+    url: '/ttpg/rtp_details/edit',
+    data,
+    params
+  })
+}
+
+export function batchUpdateRtpDetail(data: any, params: any) {
+  return request.post<any>({
+    url: '/ttpg/rtp_details/batch_updates',
+    data,
+    params
+  })
+}
+
+export function batchConfigRtp(data: any, params: any) {
+  return request.post<any>({
+    url: '/ttpg/rtp_details/batch_config',
+    data,
+    params
+  })
+}
+
+// === RTP Template 接口 ===
+
+export function getRtpTemplateList(params: any) {
+  return request.get<any>({
+    url: '/ttpg/rtp_template/index',
+    params
+  })
+}
+
+export function addRtpTemplate(data: any, params: any) {
+  return request.post<any>({
+    url: '/ttpg/rtp_template/add',
+    data,
+    params
+  })
+}
+
+export function editRtpTemplate(data: any, params: any) {
+  return request.post<any>({
+    url: '/ttpg/rtp_template/edit',
+    data,
+    params
+  })
+}
+
+export function deleteRtpTemplate(params: any) {
+  return request.post<any>({
+    url: '/ttpg/rtp_template/del',
+    params
+  })
+}
