@@ -1162,5 +1162,11 @@
   "queDingYaoShuaXinPeiZhi": "Are you sure to refresh config?",
   "wanJiaUID": "Player UID",
   "shuaXinPeiZhi": "Refresh Config",
-  "xiangQing": "Details"
+  "xiangQing": "Details",
+  "youXiFenLei": "Game Category",
+  "tianJiaFenLei": "Add Category",
+  "bianJiFenLei": "Edit Category",
+  "queDingYaoShanChuFenLei": "Are you sure to delete category【{0}】?",
+  "tuPian": "Image",
+  "queDingYaoShanChuXuanZhongFenLei": "Are you sure to delete selected categories?"
 }

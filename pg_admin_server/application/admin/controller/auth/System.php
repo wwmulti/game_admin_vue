@@ -94,11 +94,22 @@ class System extends Backend
             'path' => request()->post('path', '', 'strip_tags'),
         ];
 
+        if ($ismenu) {
+            $check = model('app\common\model\AuthRule')->get(['route_name' => $params['route_name']]);
+            if ($check && $check['id'] != $row['id']) {
+                return $this->jsonFail(__('The route name already exists'));
+            }
+        } else {
+            $params['path'] = '';
+            $params['route_name'] = '';
+            $params['component'] = '';
+        }
+
         //这里需要针对name做唯一验证
         $ruleValidate = \think\Loader::validate('AuthRule', 'validate', false, 'admin');
         $ruleValidate->rule([
             'name' => 'require|unique:AuthRuleApi,name,' . $row->id,
-            'route_name' => 'require|unique:AuthRuleApi,route_name,' . $row->id,
+            // 'route_name' => 'require|unique:AuthRuleApi,route_name,' . $row->id,
         ]);
         $result = $row->validate()->save($params);
         if ($result === false) {
@@ -150,6 +161,10 @@ class System extends Backend
             if ($check1) {
                 return $this->jsonFail(__('The route_name already exists'));
             }
+        } else {
+            $params['path'] = '';
+            $params['route_name'] = '';
+            $params['component'] = '';
         }
 
         

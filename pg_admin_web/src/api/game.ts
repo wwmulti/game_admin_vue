@@ -231,3 +231,39 @@ export function refreshRoomConfig(data: any) {
     data
   })
 }
+
+// 游戏分类（旧版 room/type）
+export function getRoomTypeList(params: any) {
+  return request.get<any>({
+    url: '/room/type/index',
+    params
+  })
+}
+
+export function addRoomType(data: any) {
+  return request.post<any>({
+    url: '/room/type/add',
+    data
+  })
+}
+
+export function editRoomType(data: any) {
+  return request.post<any>({
+    url: '/room/type/edit',
+    data
+  })
+}
+
+export function deleteRoomType(params: any) {
+  return request.post<any>({
+    url: '/room/type/del',
+    params
+  })
+}
+
+export function editRoomTypeAttr(data: any) {
+  return request.post<any>({
+    url: '/room/type/editAttr',
+    data
+  })
+}

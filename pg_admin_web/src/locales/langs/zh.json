@@ -1163,5 +1163,11 @@
   "queDingYaoShuaXinPeiZhi": "确定要刷新配置吗？",
   "wanJiaUID": "玩家UID",
   "shuaXinPeiZhi": "刷新配置",
-  "xiangQing": "详情"
+  "xiangQing": "详情",
+  "youXiFenLei": "游戏分类",
+  "tianJiaFenLei": "添加分类",
+  "bianJiFenLei": "编辑分类",
+  "queDingYaoShanChuFenLei": "确定要删除分类【{0}】吗？",
+  "tuPian": "图片",
+  "queDingYaoShanChuXuanZhongFenLei": "确定要删除选中的分类吗？"
 }
