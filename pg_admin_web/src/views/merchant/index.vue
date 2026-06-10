@@ -180,6 +180,10 @@
         <ElFormItem :label="$t('zuiDaZiDongCiShu')">
           <ElInput v-model.number="form.auto_max" type="number" :placeholder="$t('zuiDaZiDongCiShu')" />
         </ElFormItem>
+        <ElFormItem :label="$t('zuiDaFanJiang')" v-if="!isAdd">
+          <ElInput v-model.number="form.max_reward" type="number" :placeholder="$t('zuiDaFanJiang')" />
+          <div style="color:#999;font-size:12px;margin-top:4px">1000 {{ $t('biaoShi') }} 1</div>
+        </ElFormItem>
 
         <!-- 编辑专属字段（仅超管可见，参考 edit.html: {if $AuthGroupAccessStatus == 1}） -->
         <template v-if="isSuperAdmin && !isAdd">
@@ -360,7 +364,8 @@
     // edit only
     mark: '',
     ip_array: '',
-    official_currency: 'BRL'
+    official_currency: 'BRL',
+    max_reward: 0 // 最大返奖
   })
 
   const form = reactive<any>(initForm())
@@ -389,7 +394,8 @@
       style_oj_switch: form.style_oj_switch,
       status: form.status,
       free_spin_switch: form.free_spin_switch,
-      auto_max: form.auto_max
+      auto_max: form.auto_max,
+      max_reward: form.max_reward
     }
   }
 
@@ -428,6 +434,11 @@
           minWidth: 120
         },
         {
+          label: 'zuiDaFanJiang',
+          prop: 'setting.max_reward',
+          width: 120
+        },
+        {
           label: $t('quDaoMingCheng'),
           prop: 'name',
           minWidth: 140
@@ -454,11 +465,11 @@
           fixed: 'right',
           formatter: (row: any) =>
             h('div', [
-              h(
+              /* h(
                 ElButton,
                 { type: 'primary', size: 'small', onClick: () => handleShowConfigDialog(row) },
                 () => $t('peiZhi')
-              ),
+              ), */
               h(
                 ElButton,
                 { type: 'primary', size: 'small', onClick: () => handleShowEditDialog(row) },
@@ -543,6 +554,7 @@
     form.mark = row.mark || ''
     form.ip_array = row.ip_array || ''
     form.official_currency = row.official_currency || 'BRL'
+    form.max_reward = row.setting?.max_reward ?? 0
     showEditDialog.value = true
   }
 

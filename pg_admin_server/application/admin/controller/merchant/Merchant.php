@@ -201,6 +201,14 @@ class Merchant extends Backend
                 'group_id' => 3,
             ]);
             $this->model->where('id',$merchants_id)->update(['admin_id'=>$admin_id]);
+            
+            // 最大返奖
+            $insert = [
+                'id' => $merchants_id,
+                'conf' => json_encode(['max_reward' => 0]),
+            ];
+            Setting::insert($insert);
+
             Db::commit();
         } catch (ValidateException|PDOException|\Exception $e) {
             Db::rollback();
@@ -352,7 +360,13 @@ class Merchant extends Backend
         $update['ip_array'] = $params['ip_array'];
         $update['official_currency'] = $params['official_currency'];
         $update['updated_at'] = date('Y-m-d H:i:s');
- 
+
+        // 最大返奖
+        $max_reward = (int)$params['max_reward'];
+        if ($max_reward < 0 || !is_numeric($params['max_reward'])) {
+            return $this->jsonFail('最大返奖金额请填入正确的数字，且必须大于等于0');
+        }
+
         Db::startTrans();
         try {
             if(!empty($row['admin_id'])){
@@ -371,6 +385,9 @@ class Merchant extends Backend
                 ]);
             }
             $this->model->where('id',$row['id'])->update($update);
+
+            Setting::where('id',$row['id'])->update(['conf' => json_encode(['max_reward' => $max_reward])]);
+
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();
