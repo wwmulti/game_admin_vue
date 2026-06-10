@@ -145,9 +145,11 @@ class System extends Backend
             return $this->jsonFail(__('The name already exists'));
         }
 
-        $check1 = $model->where('route_name', '=', $params['route_name'])->find();
-        if ($check1) {
-            return $this->jsonFail(__('The route_name already exists'));    
+        if ($params['ismenu'] == 1) {
+            $check1 = $model->where('route_name', '=', $params['route_name'])->find();
+            if ($check1) {
+                return $this->jsonFail(__('The route_name already exists'));
+            }
         }
 
         
