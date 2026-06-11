@@ -28,104 +28,94 @@ class WingoLog extends Backend
     {
         $room_id = $this->request->get('room_id');
         $issue = $this->request->get('issue');
-        //当前是否为关联查询
-        $this->relationSearch = false;
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if ($this->request->isAjax()) {
-            //如果发送的来源是Selectpage，则转发到Selectpage
-            if ($this->request->request('keyField')) {
-                return $this->selectpage();
-            }
-            list($where, $sort, $order, $offset, $limit) = $this->buildparams();
-            $list = $this->model
-                ->where($where)
-                ->where('room_id',$room_id)
-                ->where('issue',$issue)
-                ->where($where)
-                ->group('user_id')
-                ->order($sort, $order)
-                ->paginate($limit);
-            $user_ids = [];
-            foreach ($list as $vo){
-                $user_ids[] = $vo['user_id'];
-            }
-            $UserData = User::where('id','in',implode(',',$user_ids))->column('id,remote_uid,money');
-            foreach ($UserData as &$vu){
-                $vu['remote_uid'] = preg_replace('/[^0-9]/', '', $vu['remote_uid']);
-                $vu['money'] = FormatMoney($vu['money']);
-            }
-            $new_array = [];
-            $list_data =  $this->model->where($where)
-                ->where('room_id',$room_id)
-                ->where('issue',$issue)
-                ->where('user_id','in',implode(',',$user_ids))
-                ->select();
-            $ids = [];
-            foreach ($list_data as $vo){
-                $ids[] = $vo['user_id'];
-                $vo['bet'] = FormatMoney($vo['bet']);
-                $new_array[$vo['user_id']]['user_id'] = $vo['user_id'];
-                $new_array[$vo['user_id']]['remote_uid'] = $UserData[$vo['user_id']]['remote_uid']??'';
-                $new_array[$vo['user_id']]['money'] = $UserData[$vo['user_id']]['money']??'';
-                $new_array[$vo['user_id']]['issue'] = $vo['issue'];
-                $new_array[$vo['user_id']]['room_id'] = $vo['room_id'];
-                $new_array[$vo['user_id']]['sum_bet'] = isset($new_array[$vo['user_id']]['sum_bet']) ? $new_array[$vo['user_id']]['sum_bet'] + $vo['bet'] : $vo['bet'];
-                switch ($vo['number']){
-                    case 0:
-                        $new_array[$vo['user_id']]['zero'] = isset($new_array[$vo['user_id']]['zero']) ? $new_array[$vo['user_id']]['zero'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 1:
-                        $new_array[$vo['user_id']]['one'] = isset($new_array[$vo['user_id']]['one']) ? $new_array[$vo['user_id']]['one'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 2:
-                        $new_array[$vo['user_id']]['two'] = isset($new_array[$vo['user_id']]['two']) ? $new_array[$vo['user_id']]['two'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 3:
-                        $new_array[$vo['user_id']]['three'] = isset($new_array[$vo['user_id']]['three']) ? $new_array[$vo['user_id']]['three'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 4:
-                        $new_array[$vo['user_id']]['four'] = isset($new_array[$vo['user_id']]['four']) ? $new_array[$vo['user_id']]['four'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 5:
-                        $new_array[$vo['user_id']]['five'] = isset($new_array[$vo['user_id']]['five']) ? $new_array[$vo['user_id']]['five'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 6:
-                        $new_array[$vo['user_id']]['six'] = isset($new_array[$vo['user_id']]['six']) ? $new_array[$vo['user_id']]['six'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 7:
-                        $new_array[$vo['user_id']]['seven'] = isset($new_array[$vo['user_id']]['seven']) ? $new_array[$vo['user_id']]['seven'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 8:
-                        $new_array[$vo['user_id']]['eight'] = isset($new_array[$vo['user_id']]['eight']) ? $new_array[$vo['user_id']]['eight'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 9:
-                        $new_array[$vo['user_id']]['nine'] = isset($new_array[$vo['user_id']]['nine']) ? $new_array[$vo['user_id']]['nine'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 100:
-                        $new_array[$vo['user_id']]['green'] = isset($new_array[$vo['user_id']]['green']) ? $new_array[$vo['user_id']]['green'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 101:
-                        $new_array[$vo['user_id']]['red'] = isset($new_array[$vo['user_id']]['red']) ? $new_array[$vo['user_id']]['red'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 102:
-                        $new_array[$vo['user_id']]['purple'] = isset($new_array[$vo['user_id']]['purple']) ? $new_array[$vo['user_id']]['purple'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 1000:
-                        $new_array[$vo['user_id']]['small'] = isset($new_array[$vo['user_id']]['small']) ? $new_array[$vo['user_id']]['small'] + $vo['bet'] : $vo['bet'];
-                        break;
-                    case 1001:
-                        $new_array[$vo['user_id']]['large'] = isset($new_array[$vo['user_id']]['large']) ? $new_array[$vo['user_id']]['large'] + $vo['bet'] : $vo['bet'];
-                        break;
-                }
-                $new_array[$vo['user_id']]['user_id'] = $vo['user_id'];
-            }
-            UserController::batch_update_balance(implode(',',$ids));
-            $room_lates_data = array_values($new_array);
-            $result = array("total" => $list->total(), "rows" => $room_lates_data);
-            return json($result);
+
+        list($where, $sort, $order, $offset, $limit) = $this->buildparams([], ['room_id', 'issue']);
+        $list = $this->model
+            ->where($where)
+            ->where('room_id', $room_id)
+            ->where('issue', $issue)
+            ->where($where)
+            ->group('user_id')
+            ->order($sort, $order)
+            ->paginate($limit);
+        $user_ids = [];
+        foreach ($list as $vo) {
+            $user_ids[] = $vo['user_id'];
         }
-        return $this->view->fetch();
+        $UserData = User::where('id', 'in', implode(',', $user_ids))->column('id,remote_uid,money');
+        foreach ($UserData as &$vu) {
+            $vu['remote_uid'] = preg_replace('/[^0-9]/', '', $vu['remote_uid']);
+            $vu['money'] = FormatMoney($vu['money']);
+        }
+        $new_array = [];
+        $list_data =  $this->model->where($where)
+            ->where('room_id', $room_id)
+            ->where('issue', $issue)
+            ->where('user_id', 'in', implode(',', $user_ids))
+            ->select();
+        $ids = [];
+        foreach ($list_data as $vo) {
+            $ids[] = $vo['user_id'];
+            $vo['bet'] = FormatMoney($vo['bet']);
+            $new_array[$vo['user_id']]['user_id'] = $vo['user_id'];
+            $new_array[$vo['user_id']]['remote_uid'] = $UserData[$vo['user_id']]['remote_uid'] ?? '';
+            $new_array[$vo['user_id']]['money'] = $UserData[$vo['user_id']]['money'] ?? '';
+            $new_array[$vo['user_id']]['issue'] = $vo['issue'];
+            $new_array[$vo['user_id']]['room_id'] = $vo['room_id'];
+            $new_array[$vo['user_id']]['sum_bet'] = isset($new_array[$vo['user_id']]['sum_bet']) ? $new_array[$vo['user_id']]['sum_bet'] + $vo['bet'] : $vo['bet'];
+            switch ($vo['number']) {
+                case 0:
+                    $new_array[$vo['user_id']]['zero'] = isset($new_array[$vo['user_id']]['zero']) ? $new_array[$vo['user_id']]['zero'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 1:
+                    $new_array[$vo['user_id']]['one'] = isset($new_array[$vo['user_id']]['one']) ? $new_array[$vo['user_id']]['one'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 2:
+                    $new_array[$vo['user_id']]['two'] = isset($new_array[$vo['user_id']]['two']) ? $new_array[$vo['user_id']]['two'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 3:
+                    $new_array[$vo['user_id']]['three'] = isset($new_array[$vo['user_id']]['three']) ? $new_array[$vo['user_id']]['three'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 4:
+                    $new_array[$vo['user_id']]['four'] = isset($new_array[$vo['user_id']]['four']) ? $new_array[$vo['user_id']]['four'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 5:
+                    $new_array[$vo['user_id']]['five'] = isset($new_array[$vo['user_id']]['five']) ? $new_array[$vo['user_id']]['five'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 6:
+                    $new_array[$vo['user_id']]['six'] = isset($new_array[$vo['user_id']]['six']) ? $new_array[$vo['user_id']]['six'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 7:
+                    $new_array[$vo['user_id']]['seven'] = isset($new_array[$vo['user_id']]['seven']) ? $new_array[$vo['user_id']]['seven'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 8:
+                    $new_array[$vo['user_id']]['eight'] = isset($new_array[$vo['user_id']]['eight']) ? $new_array[$vo['user_id']]['eight'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 9:
+                    $new_array[$vo['user_id']]['nine'] = isset($new_array[$vo['user_id']]['nine']) ? $new_array[$vo['user_id']]['nine'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 100:
+                    $new_array[$vo['user_id']]['green'] = isset($new_array[$vo['user_id']]['green']) ? $new_array[$vo['user_id']]['green'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 101:
+                    $new_array[$vo['user_id']]['red'] = isset($new_array[$vo['user_id']]['red']) ? $new_array[$vo['user_id']]['red'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 102:
+                    $new_array[$vo['user_id']]['purple'] = isset($new_array[$vo['user_id']]['purple']) ? $new_array[$vo['user_id']]['purple'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 1000:
+                    $new_array[$vo['user_id']]['small'] = isset($new_array[$vo['user_id']]['small']) ? $new_array[$vo['user_id']]['small'] + $vo['bet'] : $vo['bet'];
+                    break;
+                case 1001:
+                    $new_array[$vo['user_id']]['large'] = isset($new_array[$vo['user_id']]['large']) ? $new_array[$vo['user_id']]['large'] + $vo['bet'] : $vo['bet'];
+                    break;
+            }
+            $new_array[$vo['user_id']]['user_id'] = $vo['user_id'];
+        }
+        UserController::batch_update_balance(implode(',', $ids));
+        $room_lates_data = array_values($new_array);
+        $result = array("total" => $list->total(), "rows" => $room_lates_data);
+        return $this->jsonSucc($result);
     }
 
     public function update_balance()
@@ -146,14 +136,14 @@ class WingoLog extends Backend
                     if(isset($return_data['data']['balance_amount']) && $return_data){
                         User::where('id',$user_id)->update(['money'=>$return_data['data']['balance_amount']]);
                     }else{
-                        $this->error('更新失败，接口未返回最新余额');
+                       return $this->jsonFail('更新失败，接口未返回最新余额');
                     }
-                    $this->success();
+                    return $this->jsonSucc();
                 }else{
-                    $this->error('渠道不存在');
+                    return $this->jsonFail('渠道不存在');
                 }
             }else{
-                $this->error('用户不存在');
+                return $this->jsonFail('用户不存在');
             }
         }
 

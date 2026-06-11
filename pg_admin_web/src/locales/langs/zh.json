@@ -509,6 +509,10 @@
   "shangHu": "商户",
   "riQi": "日期",
   "yongHu": "用户",
+  "yongHuID": "用户ID",
+  "hongSe": "红色",
+  "lvSe": "绿色",
+  "ziSe": "紫色",
   "yaZhu": "押注",
   "yingJin": "赢金",
   "yaZhuCiShu": "押注次数",
@@ -573,6 +577,7 @@
   "fangJian": "房间",
   "shuaXinShuJu": "刷新数据",
   "shuZi": "数字",
+  "chaKanXiangQing": "查看详情",
   "caoZuoTiShi": "操作提示",
   "queRenTijiaoKaijiangXinxi": "确定要提交开奖信息",
   "wingoYuGu": "Wingo预估",
@@ -1170,5 +1175,8 @@
   "queDingYaoShanChuFenLei": "确定要删除分类【{0}】吗？",
   "tuPian": "图片",
   "queDingYaoShanChuXuanZhongFenLei": "确定要删除选中的分类吗？",
-  "jiSuanKaiJiangGaiLv": "计算开奖概率(%)"
+  "jiSuanKaiJiangGaiLv": "计算开奖概率(%)",
+  "fangJianMing": "房间名",
+  "xiTongJingShuYing": "系统净输赢",
+  "yuGuFanHuan": "预估返还"
 }

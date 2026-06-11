@@ -509,6 +509,10 @@
   "shangHu": "Merchant",
   "riQi": "Date",
   "yongHu": "User",
+  "yongHuID": "User ID",
+  "hongSe": "Red",
+  "lvSe": "Green",
+  "ziSe": "Purple",
   "yaZhu": "Bet",
   "yingJin": "Winning Amount",
   "yaZhuCiShu": "Bet Times",
@@ -573,6 +577,7 @@
   "fangJian": "Room",
   "shuaXinShuJu": "Refresh Data",
   "shuZi": "Number",
+  "chaKanXiangQing": "View Details",
   "caoZuoTiShi": "Operation Prompt",
   "queRenTijiaoKaijiangXinxi": "Confirm to submit draw info",
   "wingoYuGu": "Wingo Estimate",
@@ -1169,5 +1174,8 @@
   "queDingYaoShanChuFenLei": "Are you sure to delete category【{0}】?",
   "tuPian": "Image",
   "queDingYaoShanChuXuanZhongFenLei": "Are you sure to delete selected categories?",
-  "jiSuanKaiJiangGaiLv": "Odds(%)"
+  "jiSuanKaiJiangGaiLv": "Odds(%)",
+  "fangJianMing": "Room Name",
+  "xiTongJingShuYing": "System Net P/L",
+  "yuGuFanHuan": "Est. Return"
 }

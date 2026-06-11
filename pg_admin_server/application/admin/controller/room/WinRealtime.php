@@ -37,7 +37,7 @@ class WinRealtime extends Backend
             $seconds = $vo['seconds'];
             $vo['formatted_time'] = SetTime($seconds);
         }
-        return json($list);
+        return $this->jsonSucc($list);
     }
 
     public function room_name()
@@ -46,7 +46,7 @@ class WinRealtime extends Backend
         foreach ($WinGoList as &$vo) {
             $vo = SetTime($vo);
         }
-        return json($WinGoList);
+        return $this->jsonSucc($WinGoList);
     }
 
     /**
@@ -54,35 +54,24 @@ class WinRealtime extends Backend
      */
     public function index()
     {
-        //当前是否为关联查询
-        $this->relationSearch = false;
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if ($this->request->isAjax()) {
-            //如果发送的来源是Selectpage，则转发到Selectpage
-            if ($this->request->request('keyField')) {
-                return $this->selectpage();
-            }
-            list($where, $sort, $order, $offset, $limit) = $this->buildparams();
+        list($where, $sort, $order, $offset, $limit) = $this->buildparams(['draw_time_pre' => 'times', 'draw_time' => 'times']);
 
-            $WinGoList = WinGo::where('status', 1)->order('seconds asc')->column('id,seconds');
-            foreach ($WinGoList as &$vo) {
-                $vo = SetTime($vo);
-            }
-            $list = $this->model
-                ->where($where)
-                ->order($sort, $order)
-                ->paginate($limit);
-            foreach ($list as &$vo) {
-                $vo['number_pre'] = $vo['number_pre'] == -1 ? '-' : $vo['number_pre'];
-                $vo['number'] = $vo['number'] == -1 ? '' : $vo['number'];
-                $vo['room_ids'] = $vo['room_id'];
-                $vo['room_id'] = $WinGoList[$vo['room_id']] ?? '';
-            }
-            $result = array("total" => $list->total(), "rows" => $list->items());
-            return json($result);
+        $WinGoList = WinGo::where('status', 1)->order('seconds asc')->column('id,seconds');
+        foreach ($WinGoList as &$vo) {
+            $vo = SetTime($vo);
         }
-        return $this->view->fetch();
+        $list = $this->model
+            ->where($where)
+            ->order($sort, $order)
+            ->paginate($limit);
+        foreach ($list as &$vo) {
+            $vo['number_pre'] = $vo['number_pre'] == -1 ? '-' : $vo['number_pre'];
+            $vo['number'] = $vo['number'] == -1 ? '' : $vo['number'];
+            $vo['room_ids'] = $vo['room_id'];
+            $vo['room_id'] = $WinGoList[$vo['room_id']] ?? '';
+        }
+        $result = array("total" => $list->total(), "rows" => $list->items());
+        return $this->jsonSucc($result);
     }
 
 
@@ -160,7 +149,7 @@ class WinRealtime extends Backend
 
 
 
-        return json($new_array);
+        return $this->jsonSucc($new_array);
     }
 
     /**
@@ -251,7 +240,7 @@ class WinRealtime extends Backend
             'issue'=>$data['issue'],
             'number_pre'=>$data['number_pre'],
         ];
-        return json($return);
+        return $this->jsonSucc($return);
     }
 
 
@@ -457,23 +446,15 @@ class WinRealtime extends Backend
     {
         $row = $this->model->get($ids);
         if (!$row) {
-            $this->error(__('No Results were found'));
+            return $this->jsonFail(__('No Results were found'));
         }
         $adminIds = $this->getDataLimitAdminIds();
         if (is_array($adminIds) && !in_array($row[$this->dataLimitField], $adminIds)) {
-            $this->error(__('You have no permission'));
+            return $this->jsonFail(__('You have no permission'));
         }
-        if (false === $this->request->isPost()) {
-            $row['number_pre'] = $row['number_pre'] == -1 ? '' : $row['number_pre'];
-            if(empty($row['number_pre'])){
-                $row['number_pre'] = $row['number_rand'];
-            }
-            $this->view->assign('row', $row);
-            return $this->view->fetch();
-        }
-        $params = $this->request->post('row/a');
+        $params = $this->request->post();
         if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
         $params = $this->preExcludeFields($params);
         $result = false;
@@ -483,13 +464,13 @@ class WinRealtime extends Backend
         if ($lates_win_go) {
             $RoomData = WinGo::where('id', $lates_win_go['room_id'])->find();
             if (!$RoomData) {
-                $this->error('房间不存在');
+                return $this->jsonFail('房间不存在');
             }
             if ($lates_win_go['draw_time_pre'] - $RoomData['settle_second'] < time()) {
-                $this->error('时间不在可设定范围');
+                return $this->jsonFail('时间不在可设定范围');
             }
             if (!($winning_numbers >= 0 && $winning_numbers <= 9)) {
-                $this->error('预设值开奖号码，不在0-9范围内');
+                return $this->jsonFail('预设值开奖号码，不在0-9范围内');
             }
             try {
                 //是否采用模型验证
@@ -503,15 +484,15 @@ class WinRealtime extends Backend
                 Db::commit();
             } catch (ValidateException|PDOException|\Exception $e) {
                 Db::rollback();
-                $this->error($e->getMessage());
+                return $this->jsonFail($e->getMessage());
             }
             if (false === $result) {
-                $this->error(__('No rows were updated'));
+                return $this->jsonFail(__('No rows were updated'));
             }
         } else {
-            $this->error('期数不存在');
+            return $this->jsonFail('期数不存在');
         }
-        $this->success();
+        return $this->jsonSucc();
     }
 
 
@@ -529,22 +510,22 @@ class WinRealtime extends Backend
             if ($lates_win_go) {
                 $RoomData = WinGo::where('id', $room_id)->find();
                 if (!$RoomData) {
-                    $this->error('房间不存在');
+                    return $this->jsonFail('房间不存在');
                 }
                 if ($lates_win_go['draw_time_pre'] - $RoomData['settle_second'] < time()) {
-                    $this->error('时间不在可设定范围');
+                    return $this->jsonFail('时间不在可设定范围');
                 }
                 if (!($winning_numbers >= 0 && $winning_numbers <= 9)) {
-                    $this->error('预设值开奖号码，不在0-9范围内');
+                    return $this->jsonFail('预设值开奖号码，不在0-9范围内');
                 }
 
                 WinList::where('room_id', $room_id)->where('issue', $issue)->update([
                     'number_pre' => $winning_numbers
                 ]);
                 (new WingoOperationLog)->add_data($room_id,$issue,$winning_numbers,$this->auth->id);
-                $this->success('设置成功');
+                return $this->jsonSucc('设置成功');
             } else {
-                $this->error('期数不存在');
+                return $this->jsonFail('期数不存在');
             }
         }
     }
