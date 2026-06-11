@@ -424,6 +424,13 @@ class Backend extends Controller
                     }
                     break;
 
+                case 'range':
+                    // range 格式：["开始值","结束值"]
+                    if (is_array($value) && count($value) >= 2) {
+                        $where[$field] = ['between', $value];
+                    }
+                    break;
+
                 case 'gt':
                     $where[$field] = ['>', $value];
                     break;

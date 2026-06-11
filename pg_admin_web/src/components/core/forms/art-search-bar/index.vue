@@ -88,7 +88,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n'
   import { $t } from '@/locales'
-  import { toRaw, type Component, computed, ref, toRefs } from 'vue'
+  import { toRaw, type Component, computed, ref, toRefs, defineComponent, h, type PropType } from 'vue'
   import dayjs from 'dayjs'
   import {
     ElCascader,
@@ -111,10 +111,55 @@
 
   defineOptions({ name: 'ArtSearchBar' })
 
+  // 数值区间输入组件（双输入框，绑定 [min, max] 数组）
+  const NumberRangeInput = defineComponent({
+    name: 'NumberRangeInput',
+    props: {
+      modelValue: { type: Array, default: () => [undefined, undefined] },
+      placeholder: { type: Array as PropType<string[]>, default: () => ['最小', '最大'] },
+    },
+    emits: ['update:modelValue'],
+    setup(props, { emit }) {
+      const minValue = computed(() => props.modelValue?.[0])
+      const maxValue = computed(() => props.modelValue?.[1])
+      const placeholders = computed(() => {
+        const p = props.placeholder
+        return [p?.[0] ?? '最小', p?.[1] ?? '最大']
+      })
+
+      function onMinChange(val: number | undefined | null) {
+        emit('update:modelValue', [val ?? undefined, maxValue.value])
+      }
+      function onMaxChange(val: number | undefined | null) {
+        emit('update:modelValue', [minValue.value, val ?? undefined])
+      }
+
+      return () =>
+        h('div', { style: 'display: flex; align-items: center; gap: 4px; width: 100%;' }, [
+          h(ElInputNumber, {
+            modelValue: minValue.value,
+            'onUpdate:modelValue': onMinChange,
+            placeholder : placeholders.value[0],
+            style: 'flex: 1; min-width: 0;',
+            controls: false
+          }),
+          h('span', { style: 'color: #999; flex-shrink: 0;' }, '-'),
+          h(ElInputNumber, {
+            modelValue: maxValue.value,
+            'onUpdate:modelValue': onMaxChange,
+            placeholder: placeholders.value[1],
+            style: 'flex: 1; min-width: 0;',
+            controls: false
+          })
+        ])
+    }
+  })
+
   const componentMap = {
     input: ElInput,
     inputTag: ElInputTag,
     number: ElInputNumber,
+    numberrange: NumberRangeInput,
     select: ElSelect,
     switch: ElSwitch,
     checkbox: ElCheckbox,
