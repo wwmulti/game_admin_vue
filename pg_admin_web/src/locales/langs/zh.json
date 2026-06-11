@@ -1178,5 +1178,7 @@
   "jiSuanKaiJiangGaiLv": "计算开奖概率(%)",
   "fangJianMing": "房间名",
   "xiTongJingShuYing": "系统净输赢",
-  "yuGuFanHuan": "预估返还"
+  "yuGuFanHuan": "预估返还",
+  "guanLiYuanID": "管理员ID",
+  "fangJianID": "房间ID"
 }

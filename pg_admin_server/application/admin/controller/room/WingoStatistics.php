@@ -31,7 +31,7 @@ class WingoStatistics extends Backend
     public function merchant_name()
     {
         $platform_data = Merchants::column('id,name');
-        return json($platform_data);
+        return $platform_data;
     }
 
     public function wingo_room()
@@ -43,7 +43,7 @@ class WingoStatistics extends Backend
             $vo['formatted_time'] = SetTime($seconds);
             $new_data[$vo['id']] = $vo['formatted_time'];
         }
-        return json($new_data);
+        return $new_data;
     }
 
     /**
@@ -51,16 +51,7 @@ class WingoStatistics extends Backend
      */
     public function index()
     {
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if (false === $this->request->isAjax()) {
-            return $this->view->fetch();
-        }
-        //如果发送的来源是 Selectpage，则转发到 Selectpage
-        if ($this->request->request('keyField')) {
-            return $this->selectpage();
-        }
-        [$where, $sort, $order, $offset, $limit] = $this->buildparams();
+        [$where, $sort, $order, $offset, $limit] = $this->buildparams(['date_time' => 'dates']);
 
         $current_permission = 2;
         $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');
@@ -128,8 +119,24 @@ class WingoStatistics extends Backend
             $data[] = $supplier_data;
         }
         $data[] = $total;
-        $result = ['total' => $list->total(), 'rows' => $data,'current_permission'=>$current_permission];
-        return json($result);
+
+        // 构建选项数据
+        $wingoRoomData = [];
+        $listWinGo = WinGo::where('status', 1)->order('weight desc')->field('id,seconds')->select();
+        foreach ($listWinGo as &$vo) {
+            $seconds = $vo['seconds'];
+            $wingoRoomData[$vo['id']] = SetTime($seconds);
+        }
+        $merchantNameData = Merchants::column('name', 'id');
+
+        $result = [
+            'total' => $list->total(),
+            'rows' => $data,
+            'current_permission' => $current_permission,
+            'wingo_room' => $wingoRoomData,
+            'merchant_name' => $merchantNameData,
+        ];
+        return $this->jsonSucc($result);
     }
 
 

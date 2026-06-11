@@ -87,3 +87,19 @@ export function getWingoBetDetail(params: { room_id: number; issue: string; page
     params
   })
 }
+
+export function getWingoOperationLog(params: any) {
+  return request.get<any>({
+    url: '/room/wingo_operation_log/index',
+    params
+  })
+}
+
+// ---- WinGo 统计 ----
+
+export function getWingoStatisticsList(params: any) {
+  return request.get<any>({
+    url: '/room/wingo_statistics/index',
+    params
+  })
+}

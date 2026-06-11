@@ -1177,5 +1177,7 @@
   "jiSuanKaiJiangGaiLv": "Odds(%)",
   "fangJianMing": "Room Name",
   "xiTongJingShuYing": "System Net P/L",
-  "yuGuFanHuan": "Est. Return"
+  "yuGuFanHuan": "Est. Return",
+  "guanLiYuanID": "Admin ID",
+  "fangJianID": "Room ID"
 }
