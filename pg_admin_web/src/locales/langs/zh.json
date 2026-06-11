@@ -651,6 +651,7 @@
   "baoId": "平台ID",
   "peiZhiBiaoTi": "配置标题",
   "peiZhiNeiRong": "配置内容",
+  "rtp": "RTP",
   "kaiFangPingTai": "开放平台",
   "shiFouXinRen": "是否新人",
   "shiFouChongZhi": "是否充值",
@@ -1180,5 +1181,6 @@
   "xiTongJingShuYing": "系统净输赢",
   "yuGuFanHuan": "预估返还",
   "guanLiYuanID": "管理员ID",
-  "fangJianID": "房间ID"
+  "fangJianID": "房间ID",
+  "queRenShanChu": "确认删除"
 }

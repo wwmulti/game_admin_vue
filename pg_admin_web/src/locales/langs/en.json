@@ -651,6 +651,7 @@
   "baoId": "Platform ID",
   "peiZhiBiaoTi": "Config Title",
   "peiZhiNeiRong": "Config Content",
+  "rtp": "RTP",
   "kaiFangPingTai": "Open Platform",
   "shiFouXinRen": "New User",
   "shiFouChongZhi": "Recharged",
@@ -1179,5 +1180,6 @@
   "xiTongJingShuYing": "System Net P/L",
   "yuGuFanHuan": "Est. Return",
   "guanLiYuanID": "Admin ID",
-  "fangJianID": "Room ID"
+  "fangJianID": "Room ID",
+  "queRenShanChu": "Confirm Delete"
 }

@@ -33,5 +33,16 @@ class Rtp extends Backend
      * 需要将application/admin/library/traits/Backend.php中对应的方法复制到当前控制器,然后进行修改
      */
 
+    public function index()
+    {
+        [$where, $sort, $order, $offset, $limit] = $this->buildparams();
+        $list = $this->model
+            ->where($where)
+            ->order($sort, $order)
+            ->paginate($limit);
+        $result = ['total' => $list->total(), 'rows' => $list->items()];
+        return $this->jsonSucc($result);
+    }
+
 
 }
