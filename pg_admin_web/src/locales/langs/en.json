@@ -1168,5 +1168,6 @@
   "bianJiFenLei": "Edit Category",
   "queDingYaoShanChuFenLei": "Are you sure to delete category【{0}】?",
   "tuPian": "Image",
-  "queDingYaoShanChuXuanZhongFenLei": "Are you sure to delete selected categories?"
+  "queDingYaoShanChuXuanZhongFenLei": "Are you sure to delete selected categories?",
+  "jiSuanKaiJiangGaiLv": "Odds(%)"
 }

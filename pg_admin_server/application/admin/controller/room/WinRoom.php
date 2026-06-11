@@ -25,24 +25,13 @@ class WinRoom extends Backend
      */
     public function index()
     {
-        //当前是否为关联查询
-        $this->relationSearch = false;
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if ($this->request->isAjax()) {
-            //如果发送的来源是Selectpage，则转发到Selectpage
-            if ($this->request->request('keyField')) {
-                return $this->selectpage();
-            }
-            list($where, $sort, $order, $offset, $limit) = $this->buildparams();
-            $list = $this->model
-                    ->where($where)
-                    ->order($sort, $order)
-                    ->paginate($limit);
-            $result = array("total" => $list->total(), "rows" => $list->items());
-            return json($result);
-        }
-        return $this->view->fetch();
+        list($where, $sort, $order, $offset, $limit) = $this->buildparams();
+        $list = $this->model
+            ->where($where)
+            ->order($sort, $order)
+            ->paginate($limit);
+        $result = array("total" => $list->total(), "rows" => $list->items());
+        return $this->jsonSucc($result);
     }
 
 
@@ -51,12 +40,9 @@ class WinRoom extends Backend
      */
     public function add()
     {
-        if (false === $this->request->isPost()) {
-            return $this->view->fetch();
-        }
-        $params = $this->request->post('row/a');
+        $params = $this->request->post();
         if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
         $params = $this->preExcludeFields($params);
 
@@ -65,17 +51,18 @@ class WinRoom extends Backend
         }
         $seconds = $params['seconds'];
         $stop_second = $params['stop_second'];
-//        $settle_second = $params['settle_second'];
+        //        $settle_second = $params['settle_second'];
+        $params['create_time'] = time();
         if($seconds < $stop_second){
-            $this->error('间隔秒数不能小于提前截止压注秒数');
+            return $this->jsonFail('间隔秒数不能小于提前截止压注秒数');
         }
 //        else if($stop_second < $settle_second){
-//            $this->error('提前截止压注秒数不能小于提前开奖秒数');
+//            return $this->jsonFail('提前截止压注秒数不能小于提前开奖秒数');
 //        }
         $this_add_id = $this->model->order('id','desc')->value('id');
         $this_add_id++;
         if($this_add_id >= 10){
-            $this->error('添加ID超限，不能大于10');
+            return $this->jsonFail('添加ID超限，不能大于10');
         }
         $result = false;
         Db::startTrans();
@@ -90,13 +77,13 @@ class WinRoom extends Backend
             Db::commit();
         } catch (ValidateException|PDOException|\Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
         if ($result === false) {
-            $this->error(__('No rows were inserted'));
+            return $this->jsonFail(__('No rows were inserted'));
         }
         $this->api_post();
-        $this->success();
+        return $this->jsonSucc();
     }
 
 
@@ -107,19 +94,15 @@ class WinRoom extends Backend
     {
         $row = $this->model->get($ids);
         if (!$row) {
-            $this->error(__('No Results were found'));
+            return $this->jsonFail(__('No Results were found'));
         }
         $adminIds = $this->getDataLimitAdminIds();
         if (is_array($adminIds) && !in_array($row[$this->dataLimitField], $adminIds)) {
-            $this->error(__('You have no permission'));
+            return $this->jsonFail(__('You have no permission'));
         }
-        if (false === $this->request->isPost()) {
-            $this->view->assign('row', $row);
-            return $this->view->fetch();
-        }
-        $params = $this->request->post('row/a');
+        $params = $this->request->post();
         if (empty($params)) {
-            $this->error(__('Parameter %s can not be empty', ''));
+            return $this->jsonFail(__('Parameter %s can not be empty', ''));
         }
         $params = $this->preExcludeFields($params);
         $result = false;
@@ -127,10 +110,10 @@ class WinRoom extends Backend
         $stop_second = $params['stop_second'];
 //        $settle_second = $params['settle_second'];
         if($seconds < $stop_second){
-            $this->error('间隔秒数不能小于提前截止压注秒数');
+            return $this->jsonFail('间隔秒数不能小于提前截止压注秒数');
         }
 //        else if($stop_second < $settle_second){
-//            $this->error('提前截止压注秒数不能小于提前开奖秒数');
+//            return $this->jsonFail('提前截止压注秒数不能小于提前开奖秒数');
 //        }
         Db::startTrans();
         try {
@@ -144,13 +127,13 @@ class WinRoom extends Backend
             Db::commit();
         } catch (ValidateException|PDOException|\Exception $e) {
             Db::rollback();
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
         if (false === $result) {
-            $this->error(__('No rows were updated'));
+            return $this->jsonFail(__('No rows were updated'));
         }
         $this->api_post();
-        $this->success();
+        return $this->jsonSucc();
     }
 
 

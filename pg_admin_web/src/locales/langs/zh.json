@@ -1169,5 +1169,6 @@
   "bianJiFenLei": "编辑分类",
   "queDingYaoShanChuFenLei": "确定要删除分类【{0}】吗？",
   "tuPian": "图片",
-  "queDingYaoShanChuXuanZhongFenLei": "确定要删除选中的分类吗？"
+  "queDingYaoShanChuXuanZhongFenLei": "确定要删除选中的分类吗？",
+  "jiSuanKaiJiangGaiLv": "计算开奖概率(%)"
 }
