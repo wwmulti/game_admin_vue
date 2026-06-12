@@ -143,7 +143,7 @@
             style: 'flex: 1; min-width: 0;',
             controls: false
           }),
-          h('span', { style: 'color: #999; flex-shrink: 0;' }, '-'),
+          h('span', { style: 'color: #303133; flex-shrink: 0;' }, '-'),
           h(ElInputNumber, {
             modelValue: maxValue.value,
             'onUpdate:modelValue': onMaxChange,
@@ -572,6 +572,45 @@
       .form-buttons {
         display: flex;
         gap: 8px;
+      }
+    }
+  }
+
+  // 数字范围选择器
+  :deep(.item-type-numberrange) {
+    .inner-component {
+      width: auto;
+      border: 1px solid var(--el-border-color);
+      border-radius: var(--el-border-radius-base);
+      padding: 0 8px;
+      height: 36px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+      gap: 0;
+
+      &:hover {
+        border-color: var(--el-border-color-hover);
+      }
+
+      &:focus-within {
+        border-color: var(--el-color-primary);
+      }
+
+      .el-input-number {
+        flex: 1;
+        width: 100px;
+
+        .el-input__wrapper {
+          box-shadow: none !important;
+          background-color: transparent;
+          padding: 0 4px;
+        }
+      }
+
+      span {
+        color: var(--el-text-color-placeholder);
+        padding: 0 4px;
+        flex-shrink: 0;
       }
     }
   }

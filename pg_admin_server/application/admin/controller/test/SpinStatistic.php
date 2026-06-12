@@ -34,16 +34,28 @@ class SpinStatistic extends Backend
     public function index()
     {
         $rtp_list = \app\admin\model\Rtp::column('rtp','id');
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        if (false === $this->request->isAjax()) {
-            return $this->view->fetch();
+        [$where, $sort, $order, $offset, $limit] = $this->buildparams(
+            ['bet_amount' => 'range', 'bet_time' => 'range', 'bet_total' => 'range', 'win_total' => 'range', 'spe_times' => 'range', 'spe_total' => 'range', 'free_times' => 'range', 'free_win' => 'range', 'created_at' => 'times'], 
+            ['type_id']
+        );
+
+        $formateValue = function ($fields) use ($where) {
+            foreach ($fields as $field) {
+                if(!empty($where[$field])){
+                    $temp = $where[$field];
+                    $temp[1][0] = $temp[1][0] * 1000;
+                    $temp[1][1] = $temp[1][1] * 1000;
+                    $where[$field] = $temp;
+                }
+            }
+            return $where;
+        };
+        $where = $formateValue(['bet_amount','bet_time','bet_total','win_total','spe_total','free_win']);
+
+        if (!empty($where['created_at'])) {
+            $where['created_at'][0][1] = $where['created_at'][0][1] * 1000;
+            $where['created_at'][1][1] = $where['created_at'][1][1] * 1000;
         }
-        //如果发送的来源是 Selectpage，则转发到 Selectpage
-        if ($this->request->request('keyField')) {
-            return $this->selectpage();
-        }
-        [$where, $sort, $order, $offset, $limit] = $this->buildparams();
 
         $rooms =  Room::where("type_id",$_GET["type_id"] ?? 2)->where('status', '1')->where('reward_status', 1)->field('name,id')->column( 'name',"id");
        
@@ -72,8 +84,13 @@ class SpinStatistic extends Backend
             $vo['free_trigger_probability'] =  bcmul(bcdiv($vo['free_times'],$vo['bet_time'],4),100,2). "%";
         }
 
-        $result = ['total' => $list->total(), 'rows' => $list->items()];
-        return json($result);
+        $result = [
+            'total' => $list->total(), 
+            'rows' => $list->items(),
+            'room' => $rooms,
+            'rtps' => $rtp_list,
+        ];
+        return $this->jsonSucc($result);
     }
 
 
@@ -85,7 +102,7 @@ class SpinStatistic extends Backend
         $RtpsData = Rtp::field('id,rtp as name')->select();
         $RoomData = Room::where("type_id",$type_id)->where('status', '1')->where('reward_status', 1)->field('name,id')->select();
         $array = ['rtps' => $RtpsData, 'room' => $RoomData];
-        return json($array);
+        return $this->jsonSucc($array);
     }
 
     public function room_name()
@@ -102,7 +119,7 @@ class SpinStatistic extends Backend
             $where['name'] = ['like', "{$post}%"];
         }
         $RoomData = Room::where('status', '1')->where('reward_status', 1)->order("id","asc")->where($where)->field('')->column('id,name');
-        return json($RoomData);
+        return $this->jsonSucc($RoomData);
     }
 
     public function room_config()
@@ -118,7 +135,7 @@ class SpinStatistic extends Backend
                 ["id"=>1,"bet_amount"=>FormatMoney(1000)]
             ];
         }
-        return json($RoomData);
+        return $this->jsonSucc($RoomData);
     }
 
     public function add()
@@ -145,13 +162,13 @@ class SpinStatistic extends Backend
             $rtp_id = $this->request->post('rtp_id');
             $room_type = $this->request->post('room_type',0);//0:普通，2：必中
             if (empty($room_id)) {
-                $this->error('请选择房间');
+               return $this->jsonError('请选择房间');
             }else if (empty($rtp_id)) {
-                $this->error('请选择RTP');
+                return $this->jsonError('请选择RTP');
             }  else if (empty($bet_amount)) {
-                $this->error('请选择押注值');
+                return $this->jsonError('请选择押注值');
             } else if (empty($number)) {
-                $this->error('请输入押注次数');
+                return $this->jsonError('请输入押注次数');
             } else {
 
                 $url = Env::get('app.game_request', '')."/api/home/spin_statistic";
@@ -164,27 +181,25 @@ class SpinStatistic extends Backend
                 ];
                 $this->curl($url,$post_data);
             }
-            $this->success('请求成功');
+            return $this->jsonSucc('请求成功');
         }
     }
 
 
     public function once_more()
     {
-        if ($this->request->isAjax()) {
-            $id = $this->request->get('id');
-            $room_data = $this->model->where('id',$id)->find();
-            $url = Env::get('app.game_request', '')."/api/home/spin_statistic";
-            $post_data = [
-                'gid' => $room_data['room_id'],
-                'bm' => $room_data['bet_amount'],
-                'sn' => $room_data['bet_time'],
-                'mod' => $room_data['mod'],
-                'rtp_id' => $room_data['rtp_id'],
-            ];
-            $this->curl($url,$post_data);
-            $this->success('请求成功');
-        }
+        $id = $this->request->get('id');
+        $room_data = $this->model->where('id', $id)->find();
+        $url = Env::get('app.game_request', '') . "/api/home/spin_statistic";
+        $post_data = [
+            'gid' => $room_data['room_id'],
+            'bm' => $room_data['bet_amount'],
+            'sn' => $room_data['bet_time'],
+            'mod' => $room_data['mod'],
+            'rtp_id' => $room_data['rtp_id'],
+        ];
+        $this->curl($url, $post_data);
+        return $this->jsonSucc();
     }
 
     /**
