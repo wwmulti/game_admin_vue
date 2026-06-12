@@ -17,7 +17,7 @@ use think\Env;
 class SpinStatistic extends Backend
 {
 
-    protected $noNeedRight = ['room_name', 'room_config', 'imitatePost', 'pollStatus', 'checkGames', 'getCheckGames'];
+    protected $noNeedRight = ['room_name', 'room_config', 'imitatePost', 'pollStatus', 'checkGames', 'getCheckGames', 'imitateInit'];
     protected $model = null;
 
     public function _initialize()
@@ -252,24 +252,6 @@ class SpinStatistic extends Backend
      */
     public function imitate(GameService $gameService)
     {
-        if (false === $this->request->isAjax()) {
-            $rooms = Room::where('status', '1')->column('name,type_id,code', 'id');
-            $gameTypeList = [];
-            foreach ($rooms as $room) {
-                $temp = ['code' => $room['code'], 'name' => $room['name']];
-                $gameTypeList[$room['type_id']][] = $temp;
-            }
-            $this->assign('game_types_list', json_encode($gameTypeList));
-            return $this->view->fetch();
-        }
-
-        //设置过滤方法
-        $this->request->filter(['strip_tags', 'trim']);
-        //如果发送的来源是 Selectpage，则转发到 Selectpage
-        if ($this->request->request('keyField')) {
-            return $this->selectpage();
-        }
-
         //更新超时任务
         $logs = Db::table('game_run_stat')->where('status', 0)->select();
         if ($logs) {
@@ -280,7 +262,7 @@ class SpinStatistic extends Backend
 
         [$where, $sort, $order, $offset, $limit] = $this->buildparams();
         $result = $gameService->getRunResultList($where, $sort, $order, $offset, $limit);        
-        return json($result);
+        return $this->jsonSucc($result);
     }
 
     /**
@@ -307,7 +289,7 @@ class SpinStatistic extends Backend
                 throw new \Exception($err);
             }
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
 
         if ($this->request->isPost()) {
@@ -352,9 +334,9 @@ class SpinStatistic extends Backend
 
                 $lastId = $gameService->runQueue($gameCode, $tk, $path, $querys);
 
-                return $this->jsonSuccess(['id' => $lastId]);
+                return $this->jsonSucc(['id' => $lastId]);
             } catch (\Exception $e) {
-                return $this->jsonError($e->getMessage());
+                return $this->jsonFail($e->getMessage());
             }
         }
     }
@@ -370,12 +352,10 @@ class SpinStatistic extends Backend
         $id = $this->request->get('id', 0, 'intval');
         try {
             $data = $gameService->getRunResult($id);
+            return $this->jsonSucc($data);
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage());
-        }
-        
-        $this->assign('data', $data);
-        return $this->view->fetch();
+            return $this->jsonFail($e->getMessage());
+        }   
     }
 
     /**
@@ -387,7 +367,7 @@ class SpinStatistic extends Backend
     {
         $id = $this->request->get('id', 0, 'intval');
         $status = Db::table('game_run_stat')->where('id', $id)->value('status');
-        return $this->jsonSuccess(['status' => $status]);
+        return $this->jsonSucc(['status' => $status]);
     }
 
     /**
@@ -398,9 +378,9 @@ class SpinStatistic extends Backend
         $params = $this->request->post();
         try {
             $gameService->checkGamesQueue($params);
-            return $this->jsonSuccess();
+            return $this->jsonSucc();
         } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
     }
 
@@ -411,11 +391,29 @@ class SpinStatistic extends Backend
     {
         try {
             $data = $gameService->getGameCheckResult(input('get.type', 'pg', 'trim'));
+            return $this->jsonSucc($data);
         } catch (\Exception $e) {
-            $this->error($e->getMessage());
+            return $this->jsonFail($e->getMessage());
         }
+    }
 
-        $this->assign('data', $data);
-        return $this->view->fetch();
+    /**
+     * 模拟客户端初始化数据
+     */
+    public function imitateInit()
+    {
+        $rooms = Room::where('status', '1')->column('name,type_id,code', 'id');
+        $gameTypeList = [];
+        foreach ($rooms as $room) {
+            $temp = ['code' => $room['code'], 'name' => $room['name']];
+            $gameTypeList[$room['type_id']][] = $temp;
+        }
+        $result = [
+            'game_types_list' => $gameTypeList,
+            'game_types' => config('constant.game_types'),
+            'languages' => config('constant.languages'),
+            'page_domain' => config('constant.page_domain'),
+        ];
+        return $this->jsonSucc($result);
     }
 }

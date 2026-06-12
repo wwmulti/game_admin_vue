@@ -785,8 +785,8 @@ if (!function_exists('wget')) {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
         // if (get_server_ip() === '127.0.0.1') {
-            // curl_setopt($ch, CURLOPT_PROXY, '127.0.0.1:7897'); // 代理服务器地址和端口
-            // curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP); // 代理类型
+            curl_setopt($ch, CURLOPT_PROXY, '127.0.0.1:7897'); // 代理服务器地址和端口
+            curl_setopt($ch, CURLOPT_PROXYTYPE, CURLPROXY_HTTP); // 代理类型
         // }
 
         if (!empty($data)) {
