@@ -18,7 +18,7 @@ export function getTtpgDetailList(params: any) {
 
 export function updateTtpgDetailReward(data: any) {
   return request.post<any>({
-    url: '/ttpg/details/edit_update',
+    url: '/ttpg/details/editUpdate',
     data
   })
 }
@@ -41,7 +41,7 @@ export function editTtpgDetail(data: any, params: any) {
 
 export function batchUpdateTtpgDetail(data: any, params: any) {
   return request.post<any>({
-    url: '/ttpg/details/batch_updates',
+    url: '/ttpg/details/batchUpdate',
     data,
     params
   })
@@ -49,7 +49,7 @@ export function batchUpdateTtpgDetail(data: any, params: any) {
 
 export function batchUpdateTtpgMerchant(data: any, params: any) {
   return request.post<any>({
-    url: '/ttpg/details/batch_merchant',
+    url: '/ttpg/details/batchMerchant',
     data,
     params
   })
@@ -57,7 +57,7 @@ export function batchUpdateTtpgMerchant(data: any, params: any) {
 
 export function batchConfigTtpg(data: any, params: any) {
   return request.post<any>({
-    url: '/ttpg/details/batch_config',
+    url: '/ttpg/details/batchConfig',
     data,
     params
   })
@@ -115,7 +115,7 @@ export function getRtpDetailList(params: any) {
 
 export function updateRtpDetailReward(data: any) {
   return request.post<any>({
-    url: '/ttpg/rtp_details/edit_update',
+    url: '/ttpg/rtp_details/editUpdate',
     data
   })
 }
@@ -138,7 +138,7 @@ export function editRtpDetail(data: any, params: any) {
 
 export function batchUpdateRtpDetail(data: any, params: any) {
   return request.post<any>({
-    url: '/ttpg/rtp_details/batch_updates',
+    url: '/ttpg/rtp_details/batchUpdate',
     data,
     params
   })
@@ -146,7 +146,7 @@ export function batchUpdateRtpDetail(data: any, params: any) {
 
 export function batchConfigRtp(data: any, params: any) {
   return request.post<any>({
-    url: '/ttpg/rtp_details/batch_config',
+    url: '/ttpg/rtp_details/batchConfig',
     data,
     params
   })

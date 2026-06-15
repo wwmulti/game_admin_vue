@@ -78,7 +78,7 @@ export const useUserStore = defineStore(
      * 设置用户信息
      * @param newInfo 新的用户信息
      */
-    const setUserInfo = (newInfo: Api.Auth.UserInfo) => {
+    const setUserInfo = (newInfo: Partial<Api.Auth.UserInfo>) => {
       info.value = newInfo
     }
 

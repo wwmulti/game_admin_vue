@@ -7,6 +7,7 @@ use think\Model;
 class AuthGroup extends Model
 {
 
+    protected $table = 'game_auth_group_api';
     // 开启自动写入时间戳字段
     protected $autoWriteTimestamp = 'int';
     // 定义时间戳字段名

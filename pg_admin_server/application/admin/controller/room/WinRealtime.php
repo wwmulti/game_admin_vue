@@ -30,7 +30,7 @@ class WinRealtime extends Backend
 
     }
 
-    public function wingo_room()
+    public function wingoRoom()
     {
         $list = WinGo::where('status', 1)->order('weight desc')->field('id,seconds')->select();
         foreach ($list as &$vo) {
@@ -499,7 +499,7 @@ class WinRealtime extends Backend
     /**
      * 预设值开奖信息
      */
-    public function winning_submit()
+    public function winningSubmit()
     {
         if ($this->request->isPost()) {
             $room_id = $this->request->post('room_id');//房间ID

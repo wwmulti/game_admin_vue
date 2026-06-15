@@ -139,6 +139,8 @@
         token = result.data.token
       }
 
+      let userInfo = {id: result.data.id, username: result.data.username, avatar: result.data.avatar}
+
       // 验证token
       if (!token) {
         ElMessage.error($t('dengLuShiBai'))
@@ -146,6 +148,7 @@
 
       // 存储 token 和登录状态
       userStore.setToken(token)
+      userStore.setUserInfo(userInfo)
       userStore.setLoginStatus(true)
 
       // 登录成功处理

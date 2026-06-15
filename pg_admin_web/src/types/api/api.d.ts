@@ -90,7 +90,8 @@ declare namespace Api {
       is_deleted: 0 | 1
       pid: number
       token: string
-      group: UserGroup
+      group: UserGroup,
+      avatar: string
     }
   }
 }

@@ -8,6 +8,7 @@ use think\Db;
 use fast\Tree;
 use app\admin\model\AuthRule;
 use app\admin\model\AuthGroup;
+use app\admin\model\AuthGroupAccess;
 use app\admin\model\Admin;
 use app\admin\model\AdminLog;
 use think\Validate;
@@ -245,7 +246,7 @@ class System extends Backend
             return $this->jsonFail(__('You have no permission'));
         }
 
-        $model = model('app\admin\model\AuthGroup');
+        $model = new AuthGroup;
         $row = $model->get(['id' => $id]);
         if (!$row) {
             return $this->jsonFail(__('No Results were found'));
@@ -282,7 +283,7 @@ class System extends Backend
         
         $childrenGroupIds = $this->auth->getChildrenGroupIds(false, $this->adminId);
     
-        $model = model('app\admin\model\AuthGroup');
+        $model = new AuthGroup;
         if (!$this->auth->isSuperAdmin($this->adminId)) {      
             //父节点不能是非权限内节点
             if (!in_array($pid, $childrenGroupIds)) {
@@ -313,10 +314,10 @@ class System extends Backend
         // 移除掉当前管理员所在组别
         $ids = array_diff([$id], $groupIds);
 
-        $model = model('app\admin\model\AuthGroup');
+        $model = new AuthGroup;
         $grouplist = $model->where('id', 'in', $ids)->select();
 
-        $groupaccessmodel = model('app\admin\model\AuthGroupAccess');
+        $groupaccessmodel = new AuthGroupAccess;
         foreach ($grouplist as $k => $v) {
             // 当前组别下有管理员
             $groupone = $groupaccessmodel->get(['group_id' => $v['id']]);
@@ -432,7 +433,7 @@ class System extends Backend
         $isSuperAdmin = $this->auth->isSuperAdmin($this->adminId);
         $childrenAdminIds = $this->auth->getChildrenAdminIds(true, $this->adminId);
 
-        $model = model('\app\admin\model\AdminLog');
+        $model = new AdminLog;
         $adminList = $model->where('id', 'in', $ids)
             ->where(function ($query) use ($isSuperAdmin, $childrenAdminIds) {
             if (!$isSuperAdmin) {
@@ -483,9 +484,9 @@ class System extends Backend
             $condition['a.createtime'] = [['>=', strtotime($startDate)], ['<', strtotime('+1days', strtotime($endDate))]];
         }
 
-        $model = model('app\admin\model\Admin');
+        $model = new Admin;
 
-        $list = $model->alias('a')->join('auth_group_access b', 'a.id=b.uid', 'left')
+        $list = $model->alias('a')->join('auth_group_access_api b', 'a.id=b.uid', 'left')
             ->join('auth_group c', 'b.group_id=c.id', 'left')
             ->field(' a.id,  a.username,  a.nickname, a.loginfailure,   a.loginip, a.status,  c.name AS groupName, b.group_id, IF(a.logintime IS NOT NULL, 
        DATE_FORMAT(FROM_UNIXTIME(logintime), "%Y-%m-%d %H:%i:%s"), 
@@ -514,7 +515,7 @@ class System extends Backend
         $status = request()->post('status', 'normal', 'addslashes');
 
 
-        $model = model('app\admin\model\Admin');
+        $model = new Admin;
 
         $row = $model->get(['id' => $id]);        
         if (!$row) {
@@ -563,13 +564,13 @@ class System extends Backend
             }
 
             // 先移除所有权限
-            model('app\admin\model\AuthGroupAccess')->where('uid', $row->id)->delete();           
+            (new AuthGroupAccess)->where('uid', $row->id)->delete();           
 
             $dataset = [];
             foreach ($group as $value) {
                 $dataset[] = ['uid' => $row->id, 'group_id' => $value];
             }
-            model('app\admin\model\AuthGroupAccess')->saveAll($dataset);
+            (new AuthGroupAccess)->saveAll($dataset);
             Db::commit();
         } catch (\Exception $e) {
             Db::rollback();
@@ -592,9 +593,9 @@ class System extends Backend
         $ids = array_intersect($childrenAdminIds, $ids);
 
         $childrenGroupIds = $this->auth->getChildrenGroupIds(true, $this->adminId);
-        $model = model('app\admin\model\Admin');
+        $model = new Admin;
         $adminList = $model->where('id', 'in', $ids)->where('id', 'in', function ($query) use ($childrenGroupIds) {
-            $query->name('auth_group_access')->where('group_id', 'in', $childrenGroupIds)->field('uid');
+            $query->name('auth_group_access_api')->where('group_id', 'in', $childrenGroupIds)->field('uid');
         })->select();
         if ($adminList) {
             $deleteIds = [];
@@ -606,7 +607,7 @@ class System extends Backend
                 Db::startTrans();
                 try {
                     $model->destroy($deleteIds);
-                    model('app\admin\model\AuthGroupAccess')->where('uid', 'in', $deleteIds)->delete();
+                    (new AuthGroupAccess)->where('uid', 'in', $deleteIds)->delete();
                     Db::commit();
                     return $this->jsonSucc();
                 } catch (\Exception $e) {
@@ -643,7 +644,7 @@ class System extends Backend
         $params['password'] = $this->auth->getEncryptPassword($password, $params['salt']);
 
         Db::startTrans();
-        $model = model('app\admin\model\Admin');
+        $model = new Admin;
 
         $childrenGroupIds = $this->auth->getChildrenGroupIds(true, $this->adminId);
         //过滤不允许的组别,避免越权
@@ -662,7 +663,7 @@ class System extends Backend
             foreach ($group as $value) {
                 $dataset[] = ['uid' => $model->id, 'group_id' => $value];
             }
-            model('app\admin\model\AuthGroupAccess')->saveAll($dataset);
+            (new AuthGroupAccess)->saveAll($dataset);
             Db::commit();
             return $this->jsonSucc();
         } catch (\Exception $e) {
@@ -676,7 +677,7 @@ class System extends Backend
      */
     public function profile()
     {
-        $model = model('app\admin\model\Admin');
+        $model = new Admin;
         $field = 'username,nickname,avatar,google_verify,google_switch';
         $info = $model->where(['id' => $this->adminId])->field($field)->find();
 
@@ -702,7 +703,7 @@ class System extends Backend
         $googleSwitch = request()->post('google_switch', 0, 'intval');
         $avatar = request()->post('img', '', 'addslashes');
 
-        $model = model('app\admin\model\Admin');
+        $model = new Admin;
 
         $params = [
             'google_switch' => $googleSwitch,

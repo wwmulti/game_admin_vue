@@ -134,7 +134,7 @@ class User extends Backend
         $this->error('无权限');
     }
 
-    public function update_balance()
+    public function updateBalance()
     {
         if ($this->request->isPost()) {
             $row = $this->request->post();

@@ -169,12 +169,10 @@ class Index extends Backend
             Hook::listen("admin_login_after", $this->request);
 
             $jwtAuth = new JwtAuth();
-            /* $data = ['id' => $this->auth->id, 'username' => $username, 'avatar' => $this->auth->avatar];
-            $data['token'] = $jwtAuth->getToken($this->auth->id, time()); */
+            $data = ['id' => $this->auth->id, 'username' => $username, 'avatar' => $this->auth->avatar];
+            // $data['token'] = $jwtAuth->getToken($this->auth->id, time());
             $tokenInfo = $jwtAuth->getToken($this->auth->id, time());
-            $data = [
-                'token' => $tokenInfo['token'],
-            ];
+            $data['token'] = $tokenInfo['token'];
 
             return $this->jsonSucc($data, __('Login successful'));
         } else {

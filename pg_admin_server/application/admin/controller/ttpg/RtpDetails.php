@@ -140,7 +140,7 @@ class RtpDetails extends Backend
     }
 
     // 下拉编辑
-    public function edit_update($ids = NULL)
+    public function editUpdate($ids = NULL)
     {
         if ($this->request->isPost()) {
             $params = $this->request->post();
@@ -155,7 +155,7 @@ class RtpDetails extends Backend
     }
 
     // 一键配置
-    public function batch_updates($ids)
+    public function batchUpdate($ids)
     {
         $get = $this->request->get();
         $params = $this->request->post();
@@ -191,7 +191,7 @@ class RtpDetails extends Backend
     }
 
     // 一键添加配置
-    public function batch_config()
+    public function batchConfig()
     {
         $get = $this->request->get();
         $params = $this->request->post();

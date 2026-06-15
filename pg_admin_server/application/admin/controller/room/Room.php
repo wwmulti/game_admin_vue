@@ -62,7 +62,7 @@ class Room extends Backend
     }
 
 
-    public function api_post()
+    public function apiPost()
     {
         if ($this->request->isPost()) {
             $room_id = $this->request->post('room_id',0);
@@ -143,7 +143,7 @@ class Room extends Backend
 
 
 
-    public function batch_updates($ids)
+    public function batchUpdates($ids)
     {
         $params = $this->request->post();
         $result = $this->model->where('id', 'in', $ids)->update(['type_id' => $params['type_id']]);

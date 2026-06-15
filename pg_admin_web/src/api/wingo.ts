@@ -49,7 +49,7 @@ export function getWingoRealtimeList(params: any) {
 
 export function getWingoRooms() {
   return request.get<any>({
-    url: '/room/win_realtime/wingo_room'
+    url: '/room/win_realtime/wingoRoom'
   })
 }
 
@@ -69,7 +69,7 @@ export function getRoomDetails(params: any) {
 
 export function submitWinningNumber(data: any) {
   return request.post<any>({
-    url: '/room/win_realtime/winning_submit',
+    url: '/room/win_realtime/winningSubmit',
     data
   })
 }

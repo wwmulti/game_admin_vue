@@ -220,14 +220,14 @@ export function editRoomAttr(data: any) {
 
 export function batchUpdateRoomCategory(data: any) {
   return request.post<any>({
-    url: '/room/room/batch_updates',
+    url: '/room/room/batchUpdates',
     data
   })
 }
 
 export function refreshRoomConfig(data: any) {
   return request.post<any>({
-    url: '/room/room/api_post',
+    url: '/room/room/apiPost',
     data
   })
 }

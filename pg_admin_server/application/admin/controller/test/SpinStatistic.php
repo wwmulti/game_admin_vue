@@ -122,7 +122,7 @@ class SpinStatistic extends Backend
         return $this->jsonSucc($RoomData);
     }
 
-    public function room_config()
+    public function roomConfig()
     {
         $room_id = $this->request->get('room_id');
         $RoomData = BetAmountConfig::where('room_id', $room_id)->field('bet_amount')->select();
@@ -153,7 +153,7 @@ class SpinStatistic extends Backend
         $this->error('无权限');
     }
 
-    public function api_post()
+    public function apiPost()
     {
         if ($this->request->isPost()) {
             $room_id = $this->request->post('room_id');
@@ -186,7 +186,7 @@ class SpinStatistic extends Backend
     }
 
 
-    public function once_more()
+    public function onceMore()
     {
         $id = $this->request->get('id');
         $room_data = $this->model->where('id', $id)->find();

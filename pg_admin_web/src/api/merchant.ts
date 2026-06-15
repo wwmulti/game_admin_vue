@@ -35,7 +35,7 @@ export function deleteMerchant(data: any) {
 // 配置刷新（修改商户后调用,通知游戏服务器）
 export function configRefresh(data?: any) {
   return request.post<any>({
-    url: '/room/room/api_post',
+    url: '/room/room/apiPost',
     data
   })
 }

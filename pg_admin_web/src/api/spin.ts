@@ -9,21 +9,21 @@ export function getSpinStatisticList(params: any) {
 
 export function getRoomConfig(params: any) {
   return request.get<any>({
-    url: '/test/spin_statistic/room_config',
+    url: '/test/spin_statistic/roomConfig',
     params
   })
 }
 
 export function apiPostSpin(data: any) {
   return request.post<any>({
-    url: '/test/spin_statistic/api_post',
+    url: '/test/spin_statistic/apiPost',
     data
   })
 }
 
 export function onceMoreSpin(params: any) {
   return request.get<any>({
-    url: '/test/spin_statistic/once_more',
+    url: '/test/spin_statistic/onceMore',
     params
   })
 }
