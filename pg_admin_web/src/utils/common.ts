@@ -1,6 +1,7 @@
 import { ElMessage } from 'element-plus'
 import { $t } from '@/locales'
 import { refreshTable, getMultiTaskProcess } from '@/api/system'
+import moment from 'moment-timezone'
 
 /**
  * 切换状态
@@ -10,34 +11,28 @@ export function toggleStatus(status: 0 | 1): number {
   return 1 - status
 }
 
+/** 默认时区：巴西 (UTC-3) */
+const DEFAULT_TIMEZONE = 'America/Sao_Paulo'
+
 /**
  * 时间戳格式化
  * 输出格式：2025-10-10 00:00:00
  * @param timestamp 秒级时间戳
+ * @param timezone 时区，默认巴西时区
  */
-export function formatTimestamp(timestamp: number): string {
+export function formatTimestamp(timestamp: number, timezone = DEFAULT_TIMEZONE): string {
   if (!timestamp) return '-'
-  const date = new Date(timestamp * 1000)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+  return moment.tz(timestamp * 1000, timezone).format('YYYY-MM-DD HH:mm:ss')
 }
 
 /**
  * 时间戳格式化（仅日期）
  * 输出格式：2025-01-02
  * @param timestamp 秒级时间戳
+ * @param timezone 时区，默认巴西时区
  */
-export function formatDate(timestamp: number): string {
-  const date = new Date(timestamp * 1000)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+export function formatDate(timestamp: number, timezone = DEFAULT_TIMEZONE): string {
+  return moment.tz(timestamp * 1000, timezone).format('YYYY-MM-DD')
 }
 
 /**
