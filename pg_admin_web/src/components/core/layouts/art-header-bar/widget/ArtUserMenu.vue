@@ -31,7 +31,7 @@
             }}</span>
           </div>
         </div>
-        <ul class="py-4 mt-3 border-t border-g-300/80">
+        <!-- <ul class="py-4 mt-3 border-t border-g-300/80">
           <li class="btn-item" @click="goPage('/system/user-center')">
             <ArtSvgIcon icon="ri:user-3-line" />
             <span>{{ $t('topBar.user.userCenter') }}</span>
@@ -52,7 +52,10 @@
           <div class="log-out c-p" @click="loginOut">
             {{ $t('topBar.user.logout') }}
           </div>
-        </ul>
+        </ul> -->
+         <div class="log-out c-p" @click="loginOut">
+            {{ $t('topBar.user.logout') }}
+          </div>
       </div>
     </template>
   </ElPopover>

@@ -61,4 +61,9 @@
       margin: 6px 6px 6px 0 !important;
     }
   }
+  /* 🌟 强制让当前页面表格内的表头和单元格全部居中 */
+  :deep(.el-table th.el-table__cell),
+  :deep(.el-table td.el-table__cell) {
+    text-align: center !important;
+  }
 </style>
