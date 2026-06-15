@@ -61,6 +61,8 @@
       </div>
 
       <div class="flex-c gap-2.5">
+        <div v-if="serverTimeName" class="text-sm text-g-600">{{ serverTimeName }}：{{ formattedTime }}</div>
+        &nbsp;&nbsp;&nbsp;
         <!-- 搜索 -->
         <div
           v-if="shouldShowGlobalSearch"
@@ -183,6 +185,7 @@
   import { useCommon } from '@/hooks/core/useCommon'
   import { useHeaderBar } from '@/hooks/core/useHeaderBar'
   import ArtUserMenu from './widget/ArtUserMenu.vue'
+  import { getServerTime } from '@/api/system'
 
   defineOptions({ name: 'ArtHeaderBar' })
 
@@ -341,6 +344,62 @@
   const openChat = (): void => {
     mittBus.emit('openChat')
   }
+
+  // ---- 服务器时间同步 ----
+  const serverTimeName = ref('')
+  const serverTime = ref(0)
+  let tickTimer: ReturnType<typeof setInterval> | null = null
+  let syncTimer: ReturnType<typeof setInterval> | null = null
+
+  const formattedTime = computed(() => {
+    if (!serverTime.value) return ''
+    const d = new Date(serverTime.value)
+    const Y = d.getFullYear()
+    const M = String(d.getMonth() + 1).padStart(2, '0')
+    const D = String(d.getDate()).padStart(2, '0')
+    const h = String(d.getHours()).padStart(2, '0')
+    const m = String(d.getMinutes()).padStart(2, '0')
+    const s = String(d.getSeconds()).padStart(2, '0')
+    return `${Y}-${M}-${D} ${h}:${m}:${s}`
+  })
+
+  async function syncServerTime() {
+    try {
+      const res = await getServerTime()
+      serverTimeName.value = res.data.name || ''
+      const ts = Date.parse(res.data.time)
+      if (ts) serverTime.value = ts
+    } catch {
+      // ignore
+    }
+  }
+
+  function startTick() {
+    tickTimer = setInterval(() => {
+      serverTime.value += 1000
+    }, 1000)
+  }
+
+  function startSync() {
+    syncTimer = setInterval(() => {
+      syncServerTime()
+    }, 10000)
+  }
+
+  function stopTimers() {
+    if (tickTimer) { clearInterval(tickTimer); tickTimer = null }
+    if (syncTimer) { clearInterval(syncTimer); syncTimer = null }
+  }
+
+  onMounted(async () => {
+    await syncServerTime()
+    startTick()
+    startSync()
+  })
+
+  onUnmounted(() => {
+    stopTimers()
+  })
 </script>
 
 <style lang="scss" scoped>

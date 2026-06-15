@@ -203,3 +203,10 @@ export const getMultiTaskProcess = (params: any) => {
     params
   })
 }
+
+// 获取服务器时间
+export function getServerTime() {
+  return request.get<any>({
+    url: '/index/timeCheck'
+  })
+}

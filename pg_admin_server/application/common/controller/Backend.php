@@ -116,7 +116,7 @@ class Backend extends Controller
     protected $adminId;
 
     // 不需要登录的api controller action都配置小写的
-    protected $notLoginApi = ['index/login'];
+    protected $notLoginApi = ['index/login', 'index/timeCheck'];
 
     /**
      * 引入后台控制器的traits

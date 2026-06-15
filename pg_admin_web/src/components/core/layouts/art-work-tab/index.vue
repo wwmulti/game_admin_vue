@@ -108,6 +108,7 @@
   interface TouchState {
     startX: number
     currentX: number
+    isDragging: boolean
   }
 
   type TabCloseType = 'current' | 'left' | 'right' | 'other' | 'all'
@@ -135,7 +136,8 @@
 
   const touchState = ref<TouchState>({
     startX: 0,
-    currentX: 0
+    currentX: 0,
+    isDragging: false
   })
 
   const clickedPath = ref('')
@@ -343,13 +345,53 @@
       setTransition()
     }
 
+    // ---- 鼠标拖拽 ----
+    const handleMouseDown = (event: MouseEvent) => {
+      if (!scrollRef.value || !tabsRef.value) return
+      // 只响应左键
+      if (event.button !== 0) return
+      // 如果 ul 宽度小于容器宽度，无需拖动
+      if (tabsRef.value.offsetWidth <= scrollRef.value.offsetWidth) return
+
+      touchState.value.isDragging = true
+      touchState.value.startX = event.clientX
+      tabsRef.value.style.cursor = 'grabbing'
+      tabsRef.value.style.userSelect = 'none'
+    }
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!touchState.value.isDragging || !scrollRef.value || !tabsRef.value) return
+
+      const deltaX = event.clientX - touchState.value.startX
+      const xMin = scrollRef.value.offsetWidth - tabsRef.value.offsetWidth
+
+      scrollState.value.translateX = Math.min(
+        Math.max(scrollState.value.translateX + deltaX, xMin),
+        0
+      )
+      touchState.value.startX = event.clientX
+    }
+
+    const handleMouseUp = () => {
+      if (!touchState.value.isDragging) return
+      touchState.value.isDragging = false
+      if (tabsRef.value) {
+        tabsRef.value.style.cursor = ''
+        tabsRef.value.style.userSelect = ''
+      }
+      setTransition()
+    }
+
     const setupEventListeners = () => {
       if (tabsRef.value) {
         tabsRef.value.addEventListener('wheel', handleWheelScroll, { passive: false })
         tabsRef.value.addEventListener('touchstart', handleTouchStart, { passive: true })
         tabsRef.value.addEventListener('touchmove', handleTouchMove, { passive: true })
         tabsRef.value.addEventListener('touchend', handleTouchEnd, { passive: true })
+        tabsRef.value.addEventListener('mousedown', handleMouseDown)
       }
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
     }
 
     const cleanupEventListeners = () => {
@@ -358,7 +400,10 @@
         tabsRef.value.removeEventListener('touchstart', handleTouchStart)
         tabsRef.value.removeEventListener('touchmove', handleTouchMove)
         tabsRef.value.removeEventListener('touchend', handleTouchEnd)
+        tabsRef.value.removeEventListener('mousedown', handleMouseDown)
       }
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
     }
 
     return {

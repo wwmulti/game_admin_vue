@@ -36,9 +36,9 @@ class Index extends Backend
     /**
      * 定时10s验证后台显示巴西时间
      */
-    public function time_check()
+    public function timeCheck()
     {
-        return json(['time'=>date('Y-m-d H:i:s')]);
+        return $this->jsonSucc(['name' => Env::get('app.server_time_name'), 'time'=>date('Y-m-d H:i:s')]);
     }
 
     /**
