@@ -127,6 +127,7 @@ class Room extends Backend
                 ["id"=>9,"name"=>"cp"],
                 ["id"=>10,"name"=>"uu"],
                 ["id"=>11,"name"=>"pp"],
+                ["id"=>12, "name"=>"g759"],
             ],
         ];
     }

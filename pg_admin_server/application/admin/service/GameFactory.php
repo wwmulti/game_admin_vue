@@ -28,6 +28,7 @@ class GameFactory
     const GAME_TYPE_CP = 9;
     const GAME_TYPE_UU = 10;
     const GAME_TYPE_PP = 11;
+    const GAME_TYPE_G759 = 12;
 
     const GAME_TYPE_WINGO_STR = 'wingo';
     const GAME_TYPE_PG_STR = 'pg';
@@ -40,6 +41,7 @@ class GameFactory
     const GAME_TYPE_CP_STR = 'cp';
     const GAME_TYPE_UU_STR = 'uu';
     const GAME_TYPE_PP_STR = 'pp';
+    const GAME_TYPE_G759_STR = 'g759';
 
     private static $games = [
         // self::GAME_TYPE_WINGO => WingoGame::class,
@@ -51,6 +53,7 @@ class GameFactory
         self::GAME_TYPE_CP => CpGame::class,
         self::GAME_TYPE_UU => UuGame::class,
         self::GAME_TYPE_PP => PpGame::class,
+        // self::GAME_TYPE_G759 => G759Game::class,
     ];
 
     /**
