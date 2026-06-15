@@ -193,7 +193,8 @@
         {
           label: $t('chuangJianShiJian'),
           prop: 'recordTime',
-          minWidth: 160
+          minWidth: 160,
+          formatter: (row: any) => (window as any).formatTimestamp(row.recordTime)
         },
         {
           prop: 'operate',

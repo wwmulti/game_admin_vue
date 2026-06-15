@@ -411,7 +411,7 @@ class System extends Backend
                         $query->where('admin_id', 'in', $childrenAdminIds);
                     }
                 })
-              ->field('*,from_unixtime(createtime) recordTime')
+              ->field('*,createtime as recordTime')
               ->page($page)->limit($limit)->order('id desc')->select();
 
         $result = [
@@ -488,9 +488,10 @@ class System extends Backend
 
         $list = $model->alias('a')->join('auth_group_access_api b', 'a.id=b.uid', 'left')
             ->join('auth_group c', 'b.group_id=c.id', 'left')
-            ->field(' a.id,  a.username,  a.nickname, a.loginfailure,   a.loginip, a.status,  c.name AS groupName, b.group_id, IF(a.logintime IS NOT NULL, 
-       DATE_FORMAT(FROM_UNIXTIME(logintime), "%Y-%m-%d %H:%i:%s"), 
-       NULL) AS loginTimeFormatted')
+            //         ->field(' a.id,  a.username,  a.nickname, a.loginfailure,   a.loginip, a.status,  c.name AS groupName, b.group_id, IF(a.logintime IS NOT NULL, 
+            //    DATE_FORMAT(FROM_UNIXTIME(logintime), "%Y-%m-%d %H:%i:%s"), 
+            //    NULL) AS loginTimeFormatted')
+            ->field(' a.id,  a.username,  a.nickname, a.loginfailure,   a.loginip, a.status,  c.name AS groupName, b.group_id, a.logintime AS loginTimeFormatted')
             ->where($condition)->order('a.id desc')->page($page)->limit($limit)->select();
 
         

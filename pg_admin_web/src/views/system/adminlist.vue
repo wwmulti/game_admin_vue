@@ -252,7 +252,8 @@
         {
           label: 'zuiHouDengLuShiJian',
           prop: 'loginTimeFormatted',
-          minWidth: 160
+          minWidth: 160,
+          formatter: (row: any) => (window as any).formatTimestamp(row.loginTimeFormatted)
         },
         {
           prop: 'operate',
