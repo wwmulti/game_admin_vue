@@ -267,9 +267,16 @@ class Backend extends Controller
                 try {
                     $result = $jwtAuth->parseToken($token);
                     $this->adminId = $result[0];
+                    $exp = $result[3] ?? 0;
                 } catch (\Exception $e) {
                     throw new \think\exception\HttpResponseException(
                         json(['msg' => __('Please log in again'), 'code' => 410000])
+                    );
+                }
+
+                if ($exp && $exp < time()) {
+                    throw new \think\exception\HttpResponseException(
+                        json(['msg' => __('Login expired'), 'code' => 420000])
                     );
                 }
 

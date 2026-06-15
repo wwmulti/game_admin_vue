@@ -28,14 +28,12 @@ class JwtAuth
     public function getToken($id, $time, $params = [], $type = 0)
     {
         $host = request()->host();
-        // $time = time();
-
         $params += [
             'iss' => $host,
             'aud' => $host,
             'iat' => $time,
             'nbf' => $time,
-            'exp' => strtotime('+1 month'),
+            'exp' => $type ? strtotime('+7 day') : strtotime('+1 day'),
         ];
         $params['jti'] = compact('id', 'type');
         $token = JWT::encode($params, Env::get('app.app_key', 'default'), 'HS256', 'cyadmin');
@@ -54,7 +52,7 @@ class JwtAuth
         list($headb64, $bodyb64, $cryptob64) = explode('.', $this->token);
         $payload = JWT::jsonDecode(JWT::urlsafeB64Decode($bodyb64));
         
-        return [$payload->jti->id, $payload->jti->type, $payload->iat];
+        return [$payload->jti->id, $payload->jti->type, $payload->iat, $payload->exp];
     }
 
     /**

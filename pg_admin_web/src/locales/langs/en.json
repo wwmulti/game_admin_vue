@@ -12,7 +12,8 @@
     "requestCancelled": "Request cancelled",
     "networkError": "Network connection error, please check your connection",
     "requestFailed": "Request failed",
-    "requestConfigError": "Request configuration error"
+    "requestConfigError": "Request configuration error",
+    "loginExpired": "Login expired, please login again"
   },
   "topBar": {
     "search": {
@@ -1260,5 +1261,6 @@
   "rtpLimit": "RTP cannot exceed 150",
   "sheZhiChengGong": "Set successfully",
   "qingQiuChengGong": "Request successful",
-  "zongLunCi": "Total Rounds"
+  "zongLunCi": "Total Rounds",
+  "baoChiDengLu": "Keep Login"
 }

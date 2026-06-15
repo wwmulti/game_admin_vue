@@ -46,8 +46,8 @@
             </ElFormItem>
 
             <div class="flex-cb mt-2 text-sm">
-              <ElCheckbox v-model="formData.rememberPassword">{{
-                $t('login.rememberPwd')
+              <ElCheckbox v-model="formData.keepLogin">{{
+                $t('baoChiDengLu')
               }}</ElCheckbox>
             </div>
 
@@ -105,7 +105,7 @@
     username: '',
     password: '',
     code: '',
-    rememberPassword: true
+    keepLogin: true
   })
 
   const rules = computed<FormRules>(() => ({
@@ -127,12 +127,13 @@
       loading.value = true
 
       // 登录请求
-      const { username, password, code } = formData
+      const { username, password, code, keepLogin } = formData
 
       const result = await login({
         username: username,
         password: password,
-        code: code
+        code: code,
+        keeplogin: keepLogin
       })
       let token = ''
       if (result.code == 200) {

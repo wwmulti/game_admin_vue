@@ -90,6 +90,13 @@ axiosInstance.interceptors.response.use(
     const { code, msg } = response.data
     if (code === ApiStatus.success) return response
     if (code === ApiStatus.unauthorized) handleUnauthorizedError(msg)
+
+    // POST 请求登录过期处理
+    if (code === ApiStatus.loginExpired) {
+      handleLoginExpired(msg)
+      return response
+    }
+
     throw createHttpError(msg || $t('httpMsg.requestFailed'), code)
   },
   (error) => {
@@ -132,6 +139,16 @@ function logOut() {
   setTimeout(() => {
     useUserStore().logOut()
   }, LOGOUT_DELAY)
+}
+
+/** 处理登录过期 */
+function handleLoginExpired(message?: string): never {
+  showError(createHttpError(message || $t('httpMsg.loginExpired'), ApiStatus.loginExpired), true)
+  logOut()
+  setTimeout(() => {
+    window.location.href = '/auth/login'
+  }, LOGOUT_DELAY + 500)
+  throw createHttpError(message || $t('httpMsg.loginExpired'), ApiStatus.loginExpired)
 }
 
 /** 是否需要重试 */

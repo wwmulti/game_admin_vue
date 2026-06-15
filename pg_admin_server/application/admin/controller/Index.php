@@ -146,7 +146,7 @@ class Index extends Backend
         $username = $this->request->post('username');
         $password = $this->request->post('password', '', null);
         $keeplogin = $this->request->post('keeplogin');
-        $googlecaptcha = $this->request->post('googlecaptcha');
+        $googlecaptcha = $this->request->post('code');
 
         $rule = [
             'username'  => 'require|length:3,30',
@@ -171,7 +171,7 @@ class Index extends Backend
             $jwtAuth = new JwtAuth();
             $data = ['id' => $this->auth->id, 'username' => $username, 'avatar' => $this->auth->avatar];
             // $data['token'] = $jwtAuth->getToken($this->auth->id, time());
-            $tokenInfo = $jwtAuth->getToken($this->auth->id, time());
+            $tokenInfo = $jwtAuth->getToken($this->auth->id, time(), [], $keeplogin);
             $data['token'] = $tokenInfo['token'];
 
             return $this->jsonSucc($data, __('Login successful'));
