@@ -81,7 +81,7 @@
               <ElFormItem>
                 <ElButton type="primary" :disabled="isDataRunning" @click="startData">{{ $t('shuJuKaiPao') }}</ElButton>
                 <ElButton v-if="!isDataRunning" @click="openResultDialog">{{ $t('huoQuJieGuo') }}</ElButton>
-                <ElButton v-else disabled><i class="el-icon-loading"></i> {{ $t('zhiXingZhong') }}...</ElButton>
+                <ElButton v-else disabled><el-icon class="is-loading"><Loading /></el-icon> {{ $t('zhiXingZhong') }}...</ElButton>
               </ElFormItem>
               <ElFormItem>
                 <div class="help-block" style="color: #d9534f;">
@@ -125,7 +125,7 @@
   import { h, ref, computed, reactive, onMounted, nextTick } from 'vue'
   import { $t } from '@/locales'
   import { ElMessage, ElMessageBox, ElButton, ElCollapseTransition, ElDivider, ElTag, ElCard, ElForm, ElFormItem, ElSelect, ElOption, ElInput, ElDialog } from 'element-plus'
-  import { ArrowUp, ArrowDown } from '@element-plus/icons-vue'
+  import { ArrowUp, ArrowDown, Loading } from '@element-plus/icons-vue'
   import CryptoJS from 'crypto-js'
   import axios from 'axios'
   import {
@@ -609,7 +609,6 @@
       } catch {
         // continue polling
       }
-      runNum++
     }, 2000)
   }
 
@@ -733,7 +732,6 @@
       user_token: user_token.value,
       key: form.secret
     }
-    data.sign = buildSign(data)
 
     try {
       const res = await postCheckGames(data)

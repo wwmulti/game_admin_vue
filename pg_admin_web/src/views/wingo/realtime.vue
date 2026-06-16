@@ -187,7 +187,7 @@
 
 <script setup lang="ts">
   import { useTable } from '@/hooks'
-  import { h, ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+  import { h, ref, reactive, computed, onMounted, onActivated, onDeactivated } from 'vue'
   import { $t } from '@/locales'
   import { ElButton, ElMessage, ElMessageBox, ElTag, ElInput, ElRadio, ElTable, ElTableColumn } from 'element-plus'
   import { Search, Setting } from '@element-plus/icons-vue'
@@ -414,7 +414,17 @@
     }
   })
 
-  onUnmounted(() => {
+  // 界面路由时keep-alive,切换界面Unmounted不起作用用下面两个生命周期函数处理
+  onActivated(() => {
+    // 从缓存中激活时恢复轮询和数据
+    if (currentRoomId.value) {
+      fetchLatestData()
+      fetchDetails()
+      startPolling()
+    }
+  })
+
+  onDeactivated(() => {
     stopCountdown()
     stopPolling()
   })
