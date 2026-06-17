@@ -6,43 +6,44 @@
     :style="containerHeight"
   >
     <ElTable ref="elTableRef" v-loading="!!loading" v-bind="mergedTableProps">
-      <template v-for="col in columns" :key="col.prop || col.type">
-        <ElTableColumn v-if="col.type === 'globalIndex'" v-bind="{ ...col }">
-          <template #default="{ $index }">
-            <span>{{ getGlobalIndex($index) }}</span>
-          </template>
-        </ElTableColumn>
+      <template #default>
+        <template v-for="col in columns" :key="col.prop || col.type">
+          <ElTableColumn v-if="col.type === 'globalIndex'" v-bind="{ ...col }">
+            <template #default="{ $index }">
+              <span>{{ getGlobalIndex($index) }}</span>
+            </template>
+          </ElTableColumn>
 
-        <ElTableColumn v-else-if="col.type === 'expand'" v-bind="cleanColumnProps(col)">
-          <template #default="{ row }">
-            <component :is="col.formatter ? col.formatter(row) : null" />
-          </template>
-        </ElTableColumn>
+          <ElTableColumn v-else-if="col.type === 'expand'" v-bind="cleanColumnProps(col)">
+            <template #default="{ row }">
+              <component :is="col.formatter ? col.formatter(row) : null" />
+            </template>
+          </ElTableColumn>
 
-        <ElTableColumn v-else v-bind="cleanColumnProps(col)">
-          <template v-if="col.useHeaderSlot && col.prop" #header="headerScope">
-            <slot
-              :name="col.headerSlotName || `${col.prop}-header`"
-              v-bind="{ ...headerScope, prop: col.prop, label: col.label }"
-            >
-              {{ col.label }}
-            </slot>
-          </template>
-          <template v-if="col.useSlot && col.prop" #default="slotScope">
-            <slot
-              v-if="shouldRenderSlotScope(slotScope)"
-              :name="col.slotName || col.prop"
-              v-bind="{
-                ...slotScope,
-                prop: col.prop,
-                value: col.prop ? slotScope.row[col.prop] : undefined
-              }"
-            />
-          </template>
-        </ElTableColumn>
+          <ElTableColumn v-else v-bind="cleanColumnProps(col)">
+            <template v-if="col.useHeaderSlot && col.prop" #header="headerScope">
+              <slot
+                :name="col.headerSlotName || `${col.prop}-header`"
+                v-bind="{ ...headerScope, prop: col.prop, label: col.label }"
+              >
+                {{ col.label }}
+              </slot>
+            </template>
+            <template v-if="col.useSlot && col.prop" #default="slotScope">
+              <slot
+                v-if="shouldRenderSlotScope(slotScope)"
+                :name="col.slotName || col.prop"
+                v-bind="{
+                  ...slotScope,
+                  prop: col.prop,
+                  value: col.prop ? slotScope.row[col.prop] : undefined
+                }"
+              />
+            </template>
+          </ElTableColumn>
+        </template>
+        <slot v-if="$slots.default" />
       </template>
-
-      <template v-if="$slots.default" #default><slot /></template>
 
       <template #empty>
         <div v-if="loading"></div>
@@ -334,6 +335,7 @@
   let activeListenerEl: HTMLElement | null = null // 记录绑定的壳层节点
 
   const handleMouseDown = (e: MouseEvent) => {
+    if (e.button !== 2) return
     const target = e.target as HTMLElement
     // 阻断交互元素，避免影响按钮点击、开关切换、复选框勾选
     if (
@@ -347,18 +349,24 @@
 
     if (!targetBodyWrapper || !activeListenerEl) return
     isDown = true
-    activeListenerEl.style.cursor = 'grabbing'
-
-    // 统一以真正执行滚动的容器来做基准坐标和初初始滚动距离计算
+    activeListenerEl.classList.add('is-dragging')
+    if (activeListenerEl) {
+      activeListenerEl.style.cursor = 'grabbing'
+    }
     startX = e.pageX - targetBodyWrapper.offsetLeft
     scrollLeft = targetBodyWrapper.scrollLeft
+  }
+
+  const handleContextMenu = (e: MouseEvent) => {
+    e.preventDefault()
   }
 
   const handleMouseUpOrLeave = () => {
     if (!isDown) return
     isDown = false
+    activeListenerEl?.classList.remove('is-dragging')
     if (activeListenerEl) {
-      activeListenerEl.style.cursor = 'grab'
+      activeListenerEl.style.cursor = ''
     }
   }
 
@@ -388,7 +396,7 @@
     activeListenerEl = bodyWrapper
 
     // 4. 设置默认可抓取手势
-    activeListenerEl.style.cursor = 'grab'
+    activeListenerEl.addEventListener('contextmenu', handleContextMenu)
 
     // 5. 每次重绑先安全移除，防止多次堆叠事件
     activeListenerEl.removeEventListener('mousedown', handleMouseDown)
@@ -410,6 +418,7 @@
       activeListenerEl.removeEventListener('mouseleave', handleMouseUpOrLeave)
       activeListenerEl.removeEventListener('mouseup', handleMouseUpOrLeave)
       activeListenerEl.removeEventListener('mousemove', handleMouseMove)
+      activeListenerEl.removeEventListener('contextmenu', handleContextMenu)
     }
   })
 
@@ -443,7 +452,7 @@
   @use './style';
 
   /* 🌟 全局禁止拖拽时单元格文字被误高亮选中 */
-  :deep(.el-table__body-wrapper) {
+  :deep(.el-table__body-wrapper.is-dragging) {
     user-select: none;
   }
 </style>

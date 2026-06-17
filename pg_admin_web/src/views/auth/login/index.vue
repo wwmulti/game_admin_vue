@@ -63,9 +63,9 @@
               </ElButton>
             </div>
 
-            <div class="mt-5 text-sm text-gray-600">
+            <!-- <div class="mt-5 text-sm text-gray-600">
               <span>{{ $t('login.noAccount') }}</span>
-            </div>
+            </div> -->
           </ElForm>
         </div>
       </div>
