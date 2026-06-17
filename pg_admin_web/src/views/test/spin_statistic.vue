@@ -371,7 +371,7 @@
 
   // ---- 搜索 ----
   async function handleSearch(params: any) {
-    replaceSearchParams(params)
+    replaceSearchParams({ ...params, type_id: typeId.value })
     await getData()
   }
 

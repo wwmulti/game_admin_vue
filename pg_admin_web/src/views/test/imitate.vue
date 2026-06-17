@@ -197,11 +197,11 @@
       apiFn: getImitateList,
       apiParams: { page: 1, limit: 20 },
       columnsFactory: () => [
-        { type: 'selection', width: 50 },
-        { label: $t('suoShuYouXi'), prop: 'game_code', minWidth: 150 },
-        { label: $t('youXiLeiXing'), prop: 'type_id', minWidth: 80 },
-        { label: 'RTP', prop: 'rtp', minWidth: 80 },
-        { label: $t('shiJiRtp'), prop: 'real_rtp', minWidth: 80 },
+        // { type: 'selection', width: 50 },
+        { label: $t('suoShuYouXi'), prop: 'game_code', minWidth: 150, fixed: 'left' },
+        { label: $t('youXiLeiXing'), prop: 'type_id', minWidth: 80, fixed: 'left' },
+        { label: 'RTP', prop: 'rtp', minWidth: 80, fixed: 'left' },
+        { label: $t('shiJiRtp'), prop: 'real_rtp', minWidth: 80, fixed: 'left' },
         { label: $t('danCiJuShu'), prop: 'nums', minWidth: 80 },
         { label: $t('zongLunCi'), prop: 'rounds', minWidth: 80 },
         {
