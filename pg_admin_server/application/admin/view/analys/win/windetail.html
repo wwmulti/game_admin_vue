@@ -1,0 +1,35 @@
+<div class="panel panel-default panel-intro">
+    <div class="panel-body">
+        <table class="table table-striped table-bordered table-hover" width="100%">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>游戏-RTP</th>
+                    <th>详情</th>
+                    <th>商户</th>
+                </tr>
+            </thead>
+            <tbody>
+                {volist name="$row.result" id="item"}
+                <tr>
+                    <td>{$row.time|htmlentities}</td>
+                    <td>{$item.game_rtp}</td>
+                    <td>
+                        下注次数：{$item.bet_times|default='-'}&nbsp;&nbsp;&nbsp;
+                        总人数：{$item.total_users|default='-'}&nbsp;&nbsp;&nbsp;
+                        赢家数量：{$item.win_count|default='-'}&nbsp;&nbsp;&nbsp;
+                        输家数量：{$item.lose_count|default='-'}&nbsp;&nbsp;&nbsp;
+                        比例：{$item.win_rate|default='-'}
+                    </td>
+                    <td>{$row.merchant|htmlentities}</td>
+                </tr>
+                {/volist}
+                {empty name="$row.result"}
+                <tr>
+                    <td colspan="4" class="text-center">暂无数据</td>
+                </tr>
+                {/empty}
+            </tbody>
+        </table>
+    </div>
+</div>

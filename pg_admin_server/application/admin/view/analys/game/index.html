@@ -1,0 +1,45 @@
+<div class="panel panel-default panel-intro">
+    {:build_heading()}
+    <div class="panel-body">
+        <form id="stat-form" class="form-horizontal" role="form" data-toggle="validator" method="POST" action="">
+            <div class="form-group">
+                <label class="control-label col-xs-12 col-sm-2">{:__('时间')}:</label>
+                <div class="col-xs-12 col-sm-8">
+                    <input id="c-time" class="form-control datetimerange" name="row[time]" autocomplete="off" type="text" placeholder="选择时间范围">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-xs-12 col-sm-2">{:__('商户')}:</label>
+                <div class="col-xs-12 col-sm-8">
+                    <select id="c-merchant" class="form-control selectpicker" name="row[merchant]" data-live-search="true">
+                        <option value="">-- 选择商户 --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-xs-12 col-sm-2">{:__('游戏')}:</label>
+                <div class="col-xs-12 col-sm-8">
+                    <select id="c-game" class="form-control selectpicker" name="row[game]" data-live-search="true">
+                        <option value="">-- 选择游戏 --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group layer-footer">
+                <label class="control-label col-xs-12 col-sm-2"></label>
+                <div class="col-xs-12 col-sm-8">
+                    <button type="submit" class="btn btn-primary btn-embossed">{:__('统计')}</button>
+                </div>
+            </div>
+        </form>
+        <div id="myTabContent" class="tab-content" style="margin-top: 20px;">
+            <div class="tab-pane fade active in" id="one">
+                <div class="widget-body no-padding">
+                    <div id="toolbar" class="toolbar">
+                        <a href="javascript:;" class="btn btn-primary btn-refresh" title="{:__('Refresh')}"><i class="fa fa-refresh"></i></a>
+                    </div>
+                    <table id="table" class="table table-striped table-bordered table-hover table-nowrap" width="100%"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
