@@ -1,6 +1,5 @@
 import { ElMessage } from 'element-plus'
 import { $t } from '@/locales'
-import { refreshTable, getMultiTaskProcess } from '@/api/system'
 import moment from 'moment-timezone'
 
 /**
@@ -112,23 +111,6 @@ export function formatFieldByKeys<T extends Record<string, any>>(
 
   // 5. 用逗号将结果拼接返回
   return matchedTitles.join(',')
-}
-
-// 同步配置
-export async function refreshConfig() {
-  const result = await refreshTable()
-  if (result.code === 200) {
-    const refreshResult = await getMultiTaskProcess({
-      taskIds: result.data.taskId
-    })
-    if (refreshResult.code === 200) {
-      ElMessage.success($t('tongBuChengGong'))
-    } else {
-      ElMessage.error(result.message)
-    }
-  } else {
-    ElMessage.error(result.message)
-  }
 }
 
 // 生成随机字符串

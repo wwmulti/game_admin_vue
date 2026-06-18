@@ -166,44 +166,6 @@ export const uploadAvatar = (data: any) => {
   })
 }
 
-// 获取google秘钥
-export const googleKey = (params: any) => {
-  return request.get<any>({
-    url: '/api/system/googleKey',
-    params
-  })
-}
-
-// 绑定google秘钥
-export const bindGoogleKey = (data: any) => {
-  return request.post<any>({
-    url: '/api/system/bindGoogleKey',
-    data
-  })
-}
-
-// 解绑google秘钥
-export const unbindGoogleKey = (data: any) => {
-  return request.post<any>({
-    url: '/api/system/unbindGoogleKey',
-    data
-  })
-}
-
-// 刷新表
-export const refreshTable = () => {
-  return request.get<any>({
-    url: '/api/serves/refreshTable'
-  })
-}
-
-export const getMultiTaskProcess = (params: any) => {
-  return request.get<any>({
-    url: '/api/serves/getMultiTaskProcess',
-    params
-  })
-}
-
 // 获取服务器时间
 export function getServerTime() {
   return request.get<any>({
