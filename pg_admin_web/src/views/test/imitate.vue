@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 模拟客户端返奖 -->
-    <ElCard class="art-table-card" style="margin-bottom: 16px;background-color: #f5f7fa;">
+    <ElCard class="art-table-card" style="margin-bottom: 16px">
       <template #header>
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <span>{{ $t('moNiKeHuDuanFanJiang') }}</span>
@@ -58,7 +58,7 @@
                 <ElButton @click="getCheckGamesResultAction">{{ $t('chaKanJianCeJieGuo') }}</ElButton>
               </ElFormItem>
             </ElForm>
-            <iframe v-show="showIframe" id="gameFrame" width="399" height="599" style="margin-left: 120px; border: 1px solid #dcdfe6;"></iframe>
+            <iframe v-show="showIframe" id="gameFrame" width="399" height="599" style="margin-left: 120px; border: 1px solid var(--default-border);"></iframe>
 
             <!-- 设置 RTP -->
             <ElForm :model="form" label-width="120px">
@@ -84,7 +84,7 @@
                 <ElButton v-else disabled><el-icon class="is-loading"><Loading /></el-icon> {{ $t('zhiXingZhong') }}...</ElButton>
               </ElFormItem>
               <ElFormItem>
-                <div class="help-block" style="color: #d9534f;">
+                <div class="help-block" style="color: var(--el-color-danger);">
                   <i class="el-icon-warning"></i> {{ $t('shuJuKaiPaoTiShi') }}
                 </div>
               </ElFormItem>

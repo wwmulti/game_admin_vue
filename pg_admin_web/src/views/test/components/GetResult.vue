@@ -81,16 +81,16 @@
 .result-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--default-border);
 }
 .result-table th,
 .result-table td {
   padding: 8px;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--default-border);
   text-align: left;
 }
 .result-table th {
-  background-color: #f8f9fa;
+  background-color: var(--art-gray-200);
   font-weight: bold;
 }
 </style>

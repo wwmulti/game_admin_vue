@@ -1,8 +1,8 @@
 <template>
   <div v-loading="loading" style="margin: 10px auto; width: 85%; font-size: 15px;">
     <p v-if="data">
-      游戏类型【<span style="color: red; font-weight: bold;">{{ type }}</span>】
-      还有【<span style="color: red; font-weight: bold;">{{ data.diff }}</span>】条检测记录待更新
+      游戏类型【<span style="color: var(--el-color-danger); font-weight: bold;">{{ type }}</span>】
+      还有【<span style="color: var(--el-color-danger); font-weight: bold;">{{ data.diff }}</span>】条检测记录待更新
     </p>
 
     <table class="check-table">
@@ -94,20 +94,20 @@
 .check-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--default-border);
 }
 .check-table th,
 .check-table td {
   padding: 8px;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--default-border);
   text-align: left;
 }
 .check-table th {
-  background-color: #f8f9fa;
+  background-color: var(--art-gray-200);
   font-weight: bold;
 }
 .btn-link {
-  color: #67c23a;
+  color: var(--el-color-success);
   text-decoration: none;
   cursor: pointer;
 }
