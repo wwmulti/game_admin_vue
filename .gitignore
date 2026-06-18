@@ -40,3 +40,4 @@ pnpm-debug.log*
 /public/uploads/*
 
 pg_admin_server_bak/
+pg_admin_go_server/
