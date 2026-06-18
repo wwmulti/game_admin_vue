@@ -118,9 +118,24 @@ class SupplierDailyStatistics extends Command
                             ->select();
                     }else{
 
+                        // 检查是否是毫秒级时间戳
+                        $lastRecord = $model->table($vo['history_table_name'])->order('id', 'desc')->find();
+                        $isMillisecond = false;
+                        if ($lastRecord && isset($lastRecord['created_at'])) {
+                            $createdAt = $lastRecord['created_at'];
+                            if (is_numeric($createdAt) && $createdAt > 100000000000) {
+                                $isMillisecond = true;
+                            }
+                        }
+
+                        if ($isMillisecond) {
+                            $startStampTime = $startStampTime * 1000;
+                            $endStampTime = $endStampTime * 1000;
+                        } 
+
                         $query_data = $model->table($vo['history_table_name'])
                             ->where($where_array)
-                            ->where('created_at', 'between', [$startStampTime * 1000, $endStampTime * 1000])
+                            ->where('created_at', 'between', [$startStampTime, $endStampTime])
                             ->where('rtp_id', '<', $rtpId)
                             ->group('platform_id,merchant_id')
                             ->field("sum(bet) bet_amount,sum(transfer) transfer,merchant_id,platform_id,count(*) bet_times")
@@ -128,7 +143,7 @@ class SupplierDailyStatistics extends Command
 
                         $user_data = $model->table($vo['history_table_name'])
                             ->where($where_array)
-                            ->where('created_at', 'between', [$startStampTime * 1000, $endStampTime * 1000])
+                            ->where('created_at', 'between', [$startStampTime, $endStampTime])
                             ->where('rtp_id', '<', $rtpId)
                             ->group('platform_id,merchant_id,user_id')
                             ->field("merchant_id,platform_id,user_id")

@@ -52,20 +52,32 @@ class GameDataAnalysJob
             $endTime = $data['end_time'];
             $merchantId = $data['merchant_id'];
 
-            // 判断表类型，wingo表时间戳是秒级，其他是毫秒级
+            // 判断表类型
             $where = [];
             $isWingo = ($tableName == 'game_wingo_log');
             if ($isWingo) {
-                $startStampTime = is_numeric($startTime) ? $startTime : strtotime($startTime);
-                $endStampTime = is_numeric($endTime) ? $endTime : strtotime($endTime);
                 $where['win_status'] = ['neq', 0];
-            } elseif (in_array($tableName, $this->shortTimeTables)) {
-                $startStampTime = is_numeric($startTime) ? $startTime : strtotime($startTime);
-                $endStampTime = is_numeric($endTime) ? $endTime : strtotime($endTime);
-            } else {
+            }
+
+            // 查询最新一条记录，判断created_at是秒级还是毫秒级时间戳
+            $lastRecord = $model->table($tableName)->order('id', 'desc')->find();
+            $isMillisecond = false;
+            if ($lastRecord && isset($lastRecord['created_at'])) {
+                $createdAt = $lastRecord['created_at'];
+                if (is_numeric($createdAt) && $createdAt > 100000000000) {
+                    $isMillisecond = true;
+                }
+            }
+
+            if ($isMillisecond) {
                 $startStampTime = is_numeric($startTime) ? $startTime * 1000 : strtotime($startTime) * 1000;
                 $endStampTime = is_numeric($endTime) ? $endTime * 1000 : strtotime($endTime) * 1000;
+            } else {
+                $startStampTime = is_numeric($startTime) ? $startTime : strtotime($startTime);
+                $endStampTime = is_numeric($endTime) ? $endTime : strtotime($endTime);
             }
+
+            //
 
             if (!empty($merchantId)) {
                 $where['merchant_id'] = $merchantId;
@@ -130,19 +142,29 @@ class GameDataAnalysJob
             $endTime = $data['end_time'];
             $merchantId = $data['merchant_id'];
 
-            // 判断表类型，wingo表时间戳是秒级，其他是毫秒级
+            // 判断表类型
             $where = [];
             $isWingo = ($tableName == 'game_wingo_log');
             if ($isWingo) {
-                $startStampTime = is_numeric($startTime) ? $startTime : strtotime($startTime);
-                $endStampTime = is_numeric($endTime) ? $endTime : strtotime($endTime) + 86399;
                 $where['win_status'] = ['neq', 0];
-            } elseif (in_array($tableName, $this->shortTimeTables)) {
+            }
+
+            // 查询最新一条记录，判断created_at是秒级还是毫秒级时间戳
+            $lastRecord = $model->table($tableName)->order('id', 'desc')->find();
+            $isMillisecond = false;
+            if ($lastRecord && isset($lastRecord['created_at'])) {
+                $createdAt = $lastRecord['created_at'];
+                if (is_numeric($createdAt) && $createdAt > 100000000000) {
+                    $isMillisecond = true;
+                }
+            }
+
+            if ($isMillisecond) {
+                $startStampTime = is_numeric($startTime) ? $startTime * 1000 : strtotime($startTime) * 1000;
+                $endStampTime = is_numeric($endTime) ? $endTime * 1000 : strtotime($endTime) * 1000;
+            } else {
                 $startStampTime = is_numeric($startTime) ? $startTime : strtotime($startTime);
                 $endStampTime = is_numeric($endTime) ? $endTime : strtotime($endTime);
-            } else {
-                $startStampTime = is_numeric($startTime) ? $startTime * 1000 : strtotime($startTime) * 1000;
-                $endStampTime = is_numeric($endTime) ? $endTime * 1000 : (strtotime($endTime) + 86399) * 1000;
             }
 
             if (!empty($merchantId)) {

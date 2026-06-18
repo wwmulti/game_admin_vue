@@ -124,7 +124,7 @@
   import { useTable } from '@/hooks'
   import { h, ref, computed, reactive, onMounted, nextTick } from 'vue'
   import { $t } from '@/locales'
-  import { ElMessage, ElMessageBox, ElButton, ElCollapseTransition, ElDivider, ElTag, ElCard, ElForm, ElFormItem, ElSelect, ElOption, ElInput, ElDialog } from 'element-plus'
+  import { ElMessage, ElMessageBox, ElButton, ElCollapseTransition, ElDivider, ElTag, ElCard, ElForm, ElFormItem, ElSelect, ElOption, ElInput, ElDialog, ElTooltip } from 'element-plus'
   import { ArrowUp, ArrowDown, Loading } from '@element-plus/icons-vue'
   import CryptoJS from 'crypto-js'
   import axios from 'axios'
@@ -275,7 +275,18 @@
                 : null
             ])
         },
-        { label: $t('shiBaiYuanYin'), prop: 'err_msg', minWidth: 200 }
+        {
+          label: $t('shiBaiYuanYin'),
+          prop: 'err_msg',
+          minWidth: 200,
+          formatter: (row: any) => {
+            const msg = row.err_msg || ''
+            if (!msg) return h('span', '-')
+            const maxLen = 20
+            const display = msg.length > maxLen ? msg.slice(0, maxLen) + '...' : msg
+            return h(ElTooltip, { content: msg, placement: 'top', 'show-after': 300 }, () => display)
+          }
+        }
       ]
     },
     transform: {

@@ -547,6 +547,9 @@
   }
 
   function updateCountdown() {
+    if (detailData.draw_time > 0) {
+      detailData.draw_time--
+    }
     const t = detailData.draw_time
     if (t <= 0) {
       countdownText.value = '0s'

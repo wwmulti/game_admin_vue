@@ -38,6 +38,7 @@ class SpinStatistic extends Backend
             ['bet_amount' => 'range', 'bet_time' => 'range', 'bet_total' => 'range', 'win_total' => 'range', 'spe_times' => 'range', 'spe_total' => 'range', 'free_times' => 'range', 'free_win' => 'range', 'created_at' => 'times'], 
             ['type_id']
         );
+        $sort = 'created_at';
 
         $formateValue = function ($fields) use ($where) {
             foreach ($fields as $field) {

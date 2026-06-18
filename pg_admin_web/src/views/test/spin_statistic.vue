@@ -319,8 +319,7 @@
           label: $t('chuangJianShiJian'),
           prop: 'created_at',
           minWidth: 150,
-          formatter: (row: any) =>
-            row.created_at ? new Date(Number(row.created_at) * 1000).toLocaleString() : '-'
+          formatter: (row: any) => (window as any).formatTimestamp(row.created_at)
         },
         {
           prop: 'operate',

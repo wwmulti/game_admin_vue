@@ -39,6 +39,7 @@ class Supplier extends Backend
     public function index()
     {
         [$where, $sort, $order, $offset, $limit] = $this->buildparams(['date_time' => 'dates']);
+        $sort = 'date_time';
 
         $current_permission = 2;
         $this_admin_access = AuthGroupAccess::where('uid', $this->auth->id)->value('group_id');

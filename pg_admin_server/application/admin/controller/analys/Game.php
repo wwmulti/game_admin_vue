@@ -15,7 +15,7 @@ class Game extends Backend
     protected $model = null;
     protected $noNeedRight = ['merchant_name', 'rooms'];
 
-    public $roomIds = [1980, 68, 126, 98, 1695365, 1879752, 1543462, 2002004];
+    public $roomIds = [68, 126, 98, 1695365, 1879752, 1543462, 2002004];
 
     public function _initialize()
     {
