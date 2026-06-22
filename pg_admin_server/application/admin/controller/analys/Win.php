@@ -40,7 +40,7 @@ class Win extends Backend
     public function rooms($array = false)
     {
         $game_types = config('constant.game_types');
-        $room_data = RoomModel::where('status', 1)->where('id', 'in', $this->roomIds)->column('id,type_id,name');
+        $room_data = RoomModel::where('status', 1)->column('id,type_id,name');
         $result = [];
         foreach ($room_data as $key => $value) {
             $result[$key] = sprintf('%s-%s', $game_types[$value['type_id']] ?? $value['type_id'], $value['name']);
