@@ -75,3 +75,10 @@ export function getRunResult(params: any) {
     params
   })
 }
+
+export function checkSpin(params: any) {
+  return request.get<any>({
+    url: '/test/spin_statistic/checkSpin',
+    params
+  })
+}

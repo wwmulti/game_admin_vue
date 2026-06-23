@@ -36,6 +36,10 @@
               <ElButton type="primary" :loading="postLoading" @click="handlePostSubmit">{{ $t('queDing') }}</ElButton>
             </ElFormItem>
           </ElForm>
+          <div v-if="checkCount > 0" style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:linear-gradient(135deg,#e6f7ff,#bae7ff);border:1px solid #91d5ff;border-radius:20px;font-size:14px;color:#0050b3;margin-top:8px;">
+            <el-icon class="is-loading" style="font-size:16px;"><Loading /></el-icon>
+            <span>返奖数据处理中，还有 <strong style="font-size:18px;color:#1890ff;">{{ checkCount }}</strong> 条数据正在处理...</span>
+          </div>
         </div>
       </ElCollapseTransition>
     </ElCard>
@@ -63,9 +67,57 @@
   </div>
 </template>
 
+<script lang="ts">
+import { ref as reff, type Ref } from 'vue'
+import { ElMessage as ElMessagee } from 'element-plus'
+import { checkSpin } from '@/api/spin'
+
+// 全局唯一定时器：当前显示哪个 tab，就查询对应 typeId
+const activeTypeId: Ref<string> = reff('')
+const activeCount: Ref<number> = reff(0)
+let globalTimer: ReturnType<typeof setInterval> | null = null
+let _prevNonZeroCount = false
+let _onDone: (() => void) | null = null
+
+function stopGlobalTimer() {
+  if (globalTimer) {
+    clearInterval(globalTimer)
+    globalTimer = null
+  }
+}
+
+function startGlobalTimer() {
+  if (globalTimer) return
+  _prevNonZeroCount = false
+  const poll = async () => {
+    const tid = activeTypeId.value
+    if (!tid) { stopGlobalTimer(); return }
+    try {
+      const res = await checkSpin({ type_id: tid })
+      const count = (res as any).data?.count ?? 0
+      activeCount.value = count
+      if (count === 0) {
+        stopGlobalTimer()
+        if (_prevNonZeroCount) {
+          ElMessagee.success('返奖数据处理完成')
+          _onDone?.()
+        }
+      } else {
+        _prevNonZeroCount = true
+      }
+    } catch {
+      activeCount.value = 0
+      stopGlobalTimer()
+    }
+  }
+  poll()
+  globalTimer = setInterval(poll, 3000)
+}
+</script>
+
 <script setup lang="ts">
   import { useTable } from '@/hooks'
-  import { h, ref, computed, watch } from 'vue'
+  import { h, ref, computed, watch, onActivated, onDeactivated, onBeforeUnmount } from 'vue'
   import { useRoute } from 'vue-router'
   import { $t } from '@/locales'
   import {
@@ -80,7 +132,7 @@
     ElMessageBox,
     ElCollapseTransition
   } from 'element-plus'
-  import { ArrowUp, ArrowDown } from '@element-plus/icons-vue'
+  import { ArrowUp, ArrowDown, Loading } from '@element-plus/icons-vue'
   import {
     getSpinStatisticList,
     getRoomConfig,
@@ -96,6 +148,32 @@
     const m = val.match(/\/type_id\/(\d+)/)
     typeId.value = m ? m[1] : ''
   }, { immediate: true })
+
+  // 仅当前 tab 是激活实例时才显示数量
+  const checkCount = computed(() => {
+    return typeId.value === activeTypeId.value ? activeCount.value : 0
+  })
+
+  // tab 切到前台：成为激活实例，注册完成回调，启动全局轮询
+  onActivated(() => {
+    activeTypeId.value = typeId.value
+    _onDone = refreshData
+    startGlobalTimer()
+  })
+
+  // tab 切到后台：停止全局定时器
+  onDeactivated(() => {
+    activeTypeId.value = ''
+    _onDone = null
+    stopGlobalTimer()
+  })
+
+  // 组件销毁时清理
+  onBeforeUnmount(() => {
+    activeTypeId.value = ''
+    _onDone = null
+    stopGlobalTimer()
+  })
 
   const searchBarRef = ref()
   const artTableRef = ref()
@@ -141,11 +219,16 @@
         bet_amount: f.bet_amount,
         number: f.number,
         room_type: f.room_type,
-        rtp_id: f.rtp_id
+        rtp_id: f.rtp_id,
+        type_id: typeId.value
       })
-      if (res.code === 200 || res.code === 0) {
+      if (res.code === 200) {
         ElMessage.success($t('chengGong'))
         await refreshData()
+        // 提交成功后激活当前 tab，启动全局轮询
+        activeTypeId.value = typeId.value
+        activeCount.value = 1
+        startGlobalTimer()
       } else {
         ElMessage.error(res.msg || $t('shiBai'))
       }
@@ -292,9 +375,21 @@
       apiFn: getSpinStatisticList,
       apiParams: { page: 1, limit: 20, type_id: typeId.value },
       columnsFactory: () => [
-        { type: 'selection', width: 50 },
         { label: $t('suoShuYouXi'), prop: 'room_name', minWidth: 120 },
         { label: $t('dangWei'), prop: 'rtp', minWidth: 80 },
+        {
+          label: $t('fanJiangLv'),
+          prop: 'rebate_per',
+          minWidth: 90,
+          formatter: (row: any) => {
+            const rtpVal = parseFloat(String(row.rtp).replace('%', ''))
+            const rebateVal = parseFloat(String(row.rebate_per).replace('%', ''))
+            if (!isNaN(rtpVal) && !isNaN(rebateVal) && Math.abs(rebateVal - rtpVal) > 5) {
+              return h('span', { style: 'color: red; font-size: 16px; font-weight: bold' }, row.rebate_per)
+            }
+            return h('span', null, row.rebate_per)
+          }
+        },
         {
           label: $t('moShi'),
           prop: 'mod',
@@ -308,7 +403,6 @@
         { label: $t('zongYingJin'), prop: 'win_total', minWidth: 120 },
         { label: $t('zongYingCiShu'), prop: 'win_times', minWidth: 100 },
         { label: $t('zhongJiangGaiLv'), prop: 'win_per', minWidth: 90 },
-        { label: $t('fanJiangLv'), prop: 'rebate_per', minWidth: 90 },
         { label: $t('teShuYouXiCiShu'), prop: 'spe_times', minWidth: 110 },
         { label: $t('teShuYouXiZhongJiangZongE'), prop: 'spe_total', minWidth: 150 },
         { label: $t('teShuYouXiChuFaGaiLv'), prop: 'special_trigger_probability', minWidth: 120 },
@@ -356,10 +450,13 @@
       return
     }
     try {
-      const res = await onceMoreSpin({ id: row.id })
+      const res = await onceMoreSpin({ id: row.id, type_id: typeId.value })
       if (res.code === 200 || res.code === 0) {
         ElMessage.success($t('chengGong'))
-        await refreshData()
+        activeTypeId.value = typeId.value
+        activeCount.value = 1
+        startGlobalTimer()
+        // await refreshData()
       } else {
         ElMessage.error(res.msg || $t('shiBai'))
       }

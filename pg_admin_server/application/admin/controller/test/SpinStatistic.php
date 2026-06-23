@@ -13,6 +13,9 @@ use app\admin\service\GameFactory;
 use app\admin\service\GameService;
 use think\Db;
 use think\Env;
+use app\job\GameSpinJob;
+use think\Queue;
+use think\Cache;
 
 class SpinStatistic extends Backend
 {
@@ -76,14 +79,17 @@ class SpinStatistic extends Backend
             $vo['win_total'] = FormatMoney($vo['win_total']);
             $vo['spe_total'] = FormatMoney($vo['spe_total']);
             $vo['free_win'] = FormatMoney($vo['free_win']);
-            $vo['rebate_per'] = ($vo['win_total']*100 / $vo['bet_total']) . "%";
-            $vo['win_per'] = ($vo['win_times']*100 / $vo['bet_time']) . "%";
+            $vo['rebate_per'] = round($vo['win_total']*100 / $vo['bet_total'], 2) . "%";
+            $vo['win_per'] = round($vo['win_times']*100 / $vo['bet_time'], 2) . "%";
             //创建时间
             $vo['created_at'] = bcdiv($vo['created_at'], 1000);
 
             $vo['special_trigger_probability'] = bcmul(bcdiv($vo['spe_times'],$vo['bet_time'],4),100,2). "%";
             $vo['free_trigger_probability'] =  bcmul(bcdiv($vo['free_times'],$vo['bet_time'],4),100,2). "%";
         }
+
+        $rooms = [0 => '--全部--'] + $rooms;
+        $rtp_list = [0 => '-全部-'] + $rtp_list;
 
         $result = [
             'total' => $list->total(), 
@@ -162,34 +168,112 @@ class SpinStatistic extends Backend
             $number = $this->request->post('number');
             $rtp_id = $this->request->post('rtp_id');
             $room_type = $this->request->post('room_type',0);//0:普通，2：必中
-            if (empty($room_id)) {
-               return $this->jsonError('请选择房间');
-            }else if (empty($rtp_id)) {
-                return $this->jsonError('请选择RTP');
+            $type_id = $this->request->post('type_id');
+            if ($room_id === '') {
+               return $this->jsonFail('请选择房间');
+            }else if ($rtp_id === '') {
+                return $this->jsonFail('请选择RTP');
             }  else if (empty($bet_amount)) {
-                return $this->jsonError('请选择押注值');
+                return $this->jsonFail('请选择押注值');
             } else if (empty($number)) {
-                return $this->jsonError('请输入押注次数');
+                return $this->jsonFail('请输入押注次数');
+            } else if (empty($type_id)) {
+                return $this->jsonFail('请选择游戏类型');
             } else {
 
-                $url = Env::get('app.game_request', '')."/api/home/spin_statistic";
-                $post_data = [
-                    'gid' => $room_id,
-                    'bm' => $bet_amount * 1000,
-                    'sn' => $number,
-                    'mod' => $room_type,
-                    'rtp_id' => $rtp_id,
-                ];
-                $this->curl($url,$post_data);
+                // 全部RTP
+                if ($rtp_id === '0') {
+                    if ($number > 100000) {
+                        return $this->jsonFail('批量操作时押注次数不能超过10w次');
+                    }
+                    $rtpList = \app\admin\model\Rtp::column('rtp', 'id');
+                    $rtp_id = array_keys($rtpList);
+                }
+                $rtp_id = (array)$rtp_id;
+
+                // 全部房间
+                if ($room_id === '0') {
+                    if ($number > 100000) {
+                        return $this->jsonFail('批量操作时押注次数不能超过10w次');
+                    }
+                    $roomList =  Room::where("type_id", $type_id)->where('status', '1')->where('reward_status', 1)->field('name,id')->column('name', "id");
+                    $room_id = array_keys($roomList);
+                }
+                $room_id = (array)$room_id;
+
+                foreach ($room_id as $gid) {
+                    foreach ($rtp_id as $rid) {
+                        $url = Env::get('app.game_request', '') . "/api/home/spin_statistic";
+                        $post_data = [
+                            'gid' => $gid,
+                            'bm' => $bet_amount * 1000,
+                            'sn' => $number,
+                            'mod' => $room_type,
+                            'rtp_id' => $rid,
+                            'type_id' => $type_id,
+                        ];
+                        $this->curl($url, $post_data);
+                    }
+                }
             }
-            return $this->jsonSucc('请求成功');
+            return $this->jsonSucc('操作成功');
         }
+    }
+
+    public function checkSpin($type_id)
+    {
+        $reLen = $this->checkSpinRe($type_id);
+
+        $pattern = 'queues:game_spin_batch';
+        $redis = Cache::store('redis')->handler();
+        $len = $redis->lLen($pattern);
+        if ($len == 0 && $reLen == 0) {
+            return $this->jsonSucc(['count' => 0]);
+        }
+
+        $list = $redis->lRange($pattern, 0, -1);
+        $no = 0;
+        foreach ($list as $item) {
+            $arr = json_decode($item, true);
+            if (!empty($arr['data']['post_data']['type_id']) && $arr['data']['post_data']['type_id'] == $type_id) {
+                $no++;
+            }
+        }
+
+        if ($no == 0) {
+            $no = $reLen;
+        }
+
+        return $this->jsonSucc(['count' => $no]);
+    }
+
+    // 判断是否在处理的订单数
+    protected function checkSpinRe($type_id)
+    {
+        $pattern = 'queues:game_spin_batch:reserved';
+        $redis = Cache::store('redis')->handler();
+        $len = $redis->zCard($pattern);
+        if ($len == 0) {
+            return 0;
+        }
+
+        $list = $redis->zRange($pattern, 0, -1);
+        $no = 0;
+        foreach ($list as $item) {
+            $arr = json_decode($item, true);
+            if (!empty($arr['data']['post_data']['type_id']) && $arr['data']['post_data']['type_id'] == $type_id) {
+                $no++;
+            }
+        }
+
+        return $no;
     }
 
 
     public function onceMore()
     {
         $id = $this->request->get('id');
+        $type_id = $this->request->get('type_id');
         $room_data = $this->model->where('id', $id)->find();
         $url = Env::get('app.game_request', '') . "/api/home/spin_statistic";
         $post_data = [
@@ -198,9 +282,10 @@ class SpinStatistic extends Backend
             'sn' => $room_data['bet_time'],
             'mod' => $room_data['mod'],
             'rtp_id' => $room_data['rtp_id'],
+            'type_id' => $type_id,
         ];
         $this->curl($url, $post_data);
-        return $this->jsonSucc();
+        return $this->jsonSucc('操作成功');
     }
 
     /**
@@ -212,6 +297,10 @@ class SpinStatistic extends Backend
      */
     public function curl($url, $post_data = '', $header = [], $type = 'post')
     {
+        $body = ['url' => $url, 'post_data' => $post_data];
+        Queue::push(GameSpinJob::class, $body, 'game_spin_batch');
+        return;
+
         if ($post_data) {
             $type = 'post';
         }
