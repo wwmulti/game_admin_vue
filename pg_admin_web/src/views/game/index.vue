@@ -12,6 +12,7 @@
         <template #left>
           <ElButton type="primary" @click="handleShowAddDialog">{{ $t('tianJia') }}</ElButton>
           <ElButton @click="handleBatchCategory">{{ $t('piLiangXiuGaiFenLei') }}</ElButton>
+          <ElButton type="warning" @click="handleShowRefreshConfig">{{ $t('peiZhiShuaXin') }}</ElButton>
         </template>
       </ArtTableHeader>
       <ArtTable
@@ -85,6 +86,26 @@
         <ElButton type="primary" @click="confirmBatchCategory">{{ $t('queDing') }}</ElButton>
       </template>
     </ElDialog>
+
+    <!-- 配置刷新弹窗 -->
+    <ElDialog v-model="showRefreshConfigDialog" :title="$t('peiZhiShuaXin')" width="500" center>
+      <ElForm label-width="120px">
+        <ElFormItem :label="$t('youXiLeiXing')">
+          <ElSelect v-model="refreshConfigTypeId" :placeholder="$t('qingXuanZe')" filterable clearable style="width:100%" @change="handleRefreshConfigTypeChange">
+              <ElOption v-for="item in refreshConfigTypeOptions" :key="item.id" :label="item.name" :value="item.id" />
+          </ElSelect>
+        </ElFormItem>
+        <ElFormItem :label="$t('suoShuYouXi')">
+          <ElSelect v-model="refreshConfigRoomId" :placeholder="$t('qingXuanZe')" filterable clearable style="width:100%">
+            <ElOption v-for="item in refreshConfigRoomOptions" :key="item.id" :label="item.name" :value="item.id" />
+          </ElSelect>
+        </ElFormItem>
+      </ElForm>
+      <template #footer>
+        <ElButton @click="showRefreshConfigDialog = false">{{ $t('quXiao') }}</ElButton>
+        <ElButton type="primary" :loading="refreshConfigLoading" @click="confirmRefreshConfig">{{ $t('queDing') }}</ElButton>
+      </template>
+    </ElDialog>
   </div>
 </template>
 
@@ -103,7 +124,7 @@
     ElOption,
     ElInput
   } from 'element-plus'
-  import { getRoomList, addRoom, editRoom, deleteRoom, editRoomAttr, batchUpdateRoomCategory, refreshRoomConfig } from '@/api/game'
+  import { getRoomList, addRoom, editRoom, deleteRoom, editRoomAttr, batchUpdateRoomCategory, refreshRoomConfig, getTypeIdName, getRoomSelect } from '@/api/game'
 
   defineOptions({ name: 'GameIndex' })
 
@@ -163,6 +184,14 @@
   // 批量修改分类弹窗
   const showBatchCategoryDialog = ref(false)
   const batchCategoryTypeId = ref<number>(0)
+
+  // 配置刷新弹窗
+  const showRefreshConfigDialog = ref(false)
+  const refreshConfigTypeId = ref<number | null>(null)
+  const refreshConfigRoomId = ref<number | null>(null)
+  const refreshConfigTypeOptions = ref<any[]>([])
+  const refreshConfigRoomOptions = ref<any[]>([])
+  const refreshConfigLoading = ref(false)
 
   const initForm = () => ({
     id: null,
@@ -439,6 +468,56 @@
       }
     } finally {
       loadingInstance.close()
+    }
+  }
+
+  // ---- 配置刷新 ----
+  async function handleShowRefreshConfig() {
+    refreshConfigTypeId.value = null
+    refreshConfigRoomId.value = null
+    refreshConfigRoomOptions.value = []
+    showRefreshConfigDialog.value = true
+    const loadingInstance = ElLoading.service({})
+    try {
+      const result = await getTypeIdName()
+      if (result.code === 200) {
+        refreshConfigTypeOptions.value = result.data.list || []
+        await handleRefreshConfigTypeChange(0)
+      }
+    } finally {
+      loadingInstance.close()
+    }
+  }
+
+  async function handleRefreshConfigTypeChange(typeId: number) {
+    refreshConfigRoomId.value = null
+    refreshConfigRoomOptions.value = []
+    // if (!typeId) return
+    const loadingInstance = ElLoading.service({})
+    try {
+      const result = await getRoomSelect({ 'custom.type_id': typeId })
+      if (result.code === 200) {
+        refreshConfigRoomOptions.value = result.data.list || []
+      }
+    } finally {
+      loadingInstance.close()
+    }
+  }
+
+  async function confirmRefreshConfig() {
+    refreshConfigLoading.value = true
+    const loadingInstance = ElLoading.service({})
+    try {
+      const result = await refreshRoomConfig({ room_id: refreshConfigRoomId.value })
+      if (result.code === 200) {
+        ElMessage.success($t('chengGong'))
+        showRefreshConfigDialog.value = false
+      } else {
+        ElMessage.error(result.msg || $t('shiBai'))
+      }
+    } finally {
+      loadingInstance.close()
+      refreshConfigLoading.value = false
     }
   }
 

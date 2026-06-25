@@ -85,3 +85,18 @@ export function editRoomTypeAttr(data: any) {
     data
   })
 }
+
+// 游戏类型下拉（旧版 room/room/type_id_name）
+export function getTypeIdName() {
+  return request.get<any>({
+    url: '/room/room/type_id_name'
+  })
+}
+
+// 游戏列表下拉（旧版 room/room/room_list）
+export function getRoomSelect(params?: any) {
+  return request.post<any>({
+    url: '/room/room/room_list',
+    data: params
+  })
+}

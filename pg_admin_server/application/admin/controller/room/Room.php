@@ -21,7 +21,7 @@ class Room extends Backend
      * 无需鉴权的方法,但需要登录
      * @var array
      */
-    protected $noNeedRight = ['type_name','room_list'];
+    protected $noNeedRight = ['type_name','room_list', 'type_id_name'];
 
     /**
      * Room模型对象
@@ -100,7 +100,8 @@ class Room extends Backend
             $where['name'] = ['like',$name."%"];
         }
 
-        $type_id = $this->request->post('custom.type_id','');
+        $body = $this->request->post();
+        $type_id = $body['custom.type_id'] ?? '';
         
         if(!empty($type_id)){
             $where["type_id"] = $type_id;
@@ -108,13 +109,13 @@ class Room extends Backend
 
         $room_data = $this->model->where($where)->where('status',1)->field('id,name')->select();
         $result = array("total" => count($room_data), "list" => $room_data);
-        return json($result);
+        return $this->jsonSucc($result);
 
     }
 
     // 类型选择
     public function type_id_name(){
-        return [
+        return $this->jsonSucc([
             "total"=>10,
             "list"=>[
                 // ["id"=>1,"name"=>"wingo"],
@@ -129,11 +130,8 @@ class Room extends Backend
                 ["id"=>11,"name"=>"pp"],
                 ["id"=>12, "name"=>"g759"],
             ],
-        ];
+        ]);
     }
-
-
-  
 
     public function type_name()
     {
@@ -141,8 +139,6 @@ class Room extends Backend
         $json = json($type_data);
         return $json;
     }
-
-
 
     public function batchUpdates($ids)
     {
@@ -154,6 +150,5 @@ class Room extends Backend
             return $this->jsonError('配置失败');
         }
     }
-
 
 }
