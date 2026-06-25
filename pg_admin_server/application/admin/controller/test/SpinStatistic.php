@@ -39,7 +39,7 @@ class SpinStatistic extends Backend
         $rtp_list = \app\admin\model\Rtp::column('rtp','id');
         [$where, $sort, $order, $offset, $limit] = $this->buildparams(
             ['bet_amount' => 'range', 'bet_time' => 'range', 'bet_total' => 'range', 'win_total' => 'range', 'spe_times' => 'range', 'spe_total' => 'range', 'free_times' => 'range', 'free_win' => 'range', 'created_at' => 'times'], 
-            ['type_id']
+            ['type_id', 'rebate_diff']
         );
         $sort = 'created_at';
 
@@ -64,12 +64,27 @@ class SpinStatistic extends Backend
         $rooms =  Room::where("type_id",$_GET["type_id"] ?? 2)->where('status', '1')->where('reward_status', 1)->field('name,id')->column( 'name',"id");
        
 
-
-        $list = $this->model
-            ->where($where)
-            ->whereIn("room_id",array_keys($rooms))
-            ->order($sort, $order)
-            ->paginate($limit);
+        // 筛选 rebate_per 与 rtp 相差 5% 以上的记录
+        if (!empty($_GET['rebate_diff'])) {
+            $diffIds = $this->model
+                ->where($where)
+                ->whereIn("room_id",array_keys($rooms))
+                ->join('game_rtp', 'game_spin_statistic.rtp_id = game_rtp.id')
+                ->whereRaw("ABS(game_spin_statistic.win_total * 100 / game_spin_statistic.bet_total - game_rtp.rtp) > 5")
+                ->column('game_spin_statistic.id');
+            $list = $this->model
+                ->where($where)
+                ->whereIn("room_id",array_keys($rooms))
+                ->whereIn('id', $diffIds)
+                ->order($sort, $order)
+                ->paginate($limit);
+        } else {
+            $list = $this->model
+                ->where($where)
+                ->whereIn("room_id", array_keys($rooms))
+                ->order($sort, $order)
+                ->paginate($limit);
+        }
 
         foreach ($list as &$vo) {
             $vo['rtp'] = $rtp_list[$vo['rtp_id']] ?? '-';
@@ -87,9 +102,6 @@ class SpinStatistic extends Backend
             $vo['special_trigger_probability'] = bcmul(bcdiv($vo['spe_times'],$vo['bet_time'],4),100,2). "%";
             $vo['free_trigger_probability'] =  bcmul(bcdiv($vo['free_times'],$vo['bet_time'],4),100,2). "%";
         }
-
-        $rooms = [0 => '--全部--'] + $rooms;
-        $rtp_list = [0 => '-全部-'] + $rtp_list;
 
         $result = [
             'total' => $list->total(), 
@@ -131,8 +143,11 @@ class SpinStatistic extends Backend
 
     public function roomConfig()
     {
-        $room_id = $this->request->get('room_id');
-        $RoomData = BetAmountConfig::where('room_id', $room_id)->field('bet_amount')->select();
+        $room_id = $this->request->get('room_id/a');
+        if (empty($room_id) || count($room_id) > 1) {
+            return $this->jsonSucc([["id" => 1, "bet_amount" => FormatMoney(1000)]]);
+        }
+        $RoomData = BetAmountConfig::whereIn('room_id', $room_id)->field('bet_amount')->select();
         foreach ($RoomData as $key => &$vo) {
             $vo['id'] = $key;
             $vo['bet_amount'] = FormatMoney($vo['bet_amount']);
@@ -163,13 +178,13 @@ class SpinStatistic extends Backend
     public function apiPost()
     {
         if ($this->request->isPost()) {
-            $room_id = $this->request->post('room_id');
+            $room_id = $this->request->post('room_id/a');
             $bet_amount = $this->request->post('bet_amount');
             $number = $this->request->post('number');
             $rtp_id = $this->request->post('rtp_id');
             $room_type = $this->request->post('room_type',0);//0:普通，2：必中
             $type_id = $this->request->post('type_id');
-            if ($room_id === '') {
+            if (empty($room_id)) {
                return $this->jsonFail('请选择房间');
             }else if ($rtp_id === '') {
                 return $this->jsonFail('请选择RTP');
@@ -192,7 +207,7 @@ class SpinStatistic extends Backend
                 $rtp_id = (array)$rtp_id;
 
                 // 全部房间
-                if ($room_id === '0') {
+                if (in_array('0', $room_id)) {
                     if ($number > 100000) {
                         return $this->jsonFail('批量操作时押注次数不能超过10w次');
                     }
@@ -204,6 +219,7 @@ class SpinStatistic extends Backend
                 foreach ($room_id as $gid) {
                     foreach ($rtp_id as $rid) {
                         $url = Env::get('app.game_request', '') . "/api/home/spin_statistic";
+                        // $url = "http://192.168.1.111:8899/api/home/spin_statistic";
                         $post_data = [
                             'gid' => $gid,
                             'bm' => $bet_amount * 1000,
@@ -297,6 +313,12 @@ class SpinStatistic extends Backend
      */
     public function curl($url, $post_data = '', $header = [], $type = 'post')
     {
+        $post_data = $this->validateGameRule($post_data);
+        // 会报错导致服务重启的游戏
+        if (in_array($post_data['gid'], [2000005, 2000008, 2000012, 2000037])) {
+            return;
+        }
+
         $body = ['url' => $url, 'post_data' => $post_data];
         Queue::push(GameSpinJob::class, $body, 'game_spin_batch');
         return;
@@ -332,6 +354,39 @@ class SpinStatistic extends Backend
         curl_close($curl);
         //显示获得的数据
         return $data;
+    }
+
+    // 验证游戏规则
+    protected function validateGameRule($post_data = [])
+    {
+        if (in_array($post_data['type_id'], [5, 6, 7])) { // kess、zy、wg
+            $post_data['mod'] = $post_data['mod'] == 0 ? 1 : $post_data['mod'];
+        }
+
+        switch ($post_data['gid']) {
+            case 2000010:
+            case 2001007:
+                $post_data['mod'] = $post_data['mod'] == 0 ? 1 : $post_data['mod'];
+                break;
+        }
+
+        // 下注档位验证
+        $roomData = BetAmountConfig::whereIn('room_id', $post_data['gid'])->column('bet_amount');
+        if (!empty($roomData)) {
+            if (!in_array($post_data['bm'], $roomData)) {
+                $post_data['bm'] = $roomData[0];
+            }
+        }
+        switch ($post_data['gid']) {
+            case 2003005:
+                $post_data['bm'] = 400;
+                break;
+            case 2000051:
+            case 2000049:
+                $post_data['mod'] = $post_data['bm'];
+                break;
+        }
+        return $post_data;
     }
 
     /**

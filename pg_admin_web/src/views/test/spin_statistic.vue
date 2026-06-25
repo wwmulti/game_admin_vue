@@ -12,12 +12,14 @@
         <div v-show="postExpand">
           <ElForm :model="postForm" label-width="100px" inline>
             <ElFormItem :label="$t('xuanZeFangJian')" prop="room_id">
-              <ElSelect v-model="postForm.room_id" style="width: 160px" filterable @change="handleRoomChange">
+              <ElSelect v-model="postForm.room_id" style="width: 220px" clearable filterable multiple collapse-tags collapse-tags-tooltip @change="handleRoomChange">
+                <ElOption key="0" label="--全部--" value="0" />
                 <ElOption v-for="(val, key) in roomOptions" :key="key" :label="val" :value="key" />
               </ElSelect>
             </ElFormItem>
             <ElFormItem label="RTP" prop="rtp_id">
               <ElSelect v-model="postForm.rtp_id" style="width: 160px" filterable>
+                <ElOption key="0" label="-全部-" value="0" />
                 <ElOption v-for="(val, key) in rtpOptions" :key="key" :label="val" :value="key" />
               </ElSelect>
             </ElFormItem>
@@ -182,7 +184,7 @@ function startGlobalTimer() {
   const postExpand = ref(true)
   const postLoading = ref(false)
   const postForm = ref({
-    room_id: '',
+    room_id: [],
     rtp_id: '',
     bet_amount: '',
     number: '',
@@ -192,7 +194,7 @@ function startGlobalTimer() {
   const rtpOptions = ref<any[]>([])
   const betAmountOptions = ref<any[]>([])
 
-  async function handleRoomChange(val: string | number) {
+  async function handleRoomChange(val: string | number | string[]) {
     postForm.value.bet_amount = ''
     if (!val) {
       betAmountOptions.value = []
@@ -208,7 +210,7 @@ function startGlobalTimer() {
 
   async function handlePostSubmit() {
     const f = postForm.value
-    if (!f.room_id || !f.rtp_id || !f.bet_amount || !f.number) {
+    if (!f.room_id.length || !f.rtp_id || !f.bet_amount || !f.number) {
       ElMessage.warning($t('qingTianXieWanZheng'))
       return
     }
@@ -252,7 +254,8 @@ function startGlobalTimer() {
     spe_total: [],
     free_times: [],
     free_win: [],
-    created_at: []
+    created_at: [],
+    rebate_diff: ''
   })
 
   const formItems = computed(() => [
@@ -353,7 +356,20 @@ function startGlobalTimer() {
         'value-format': 'YYYY-MM-DD',
         style: { width: '240px' }
       }
-    }
+    },
+    {
+      label: '',
+      key: 'rebate_diff',
+      type: 'select',
+      props: {
+        placeholder: $t('xianShiYiChangShuJu'),
+        style: { width: '130px' },
+        clearable: true,
+        options: [
+          { label: $t('shi'), value: '1' },
+        ]
+      }
+    },
   ])
 
   // ---- 表格 ----

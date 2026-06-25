@@ -16,8 +16,12 @@ class GameSpinJob
         try {
             $url = $data['url'];
             $post_data = $data['post_data'];
+            $post_data['mod'] = (string)$post_data['mod'];
+            $post_data['gid'] = (string)$post_data['gid'];
+
             unset($post_data['type_id']);
-            $this->doSpin($url, $post_data);
+            $ret = $this->doSpin($url, $post_data);
+            // echo sprintf('gid:%s, mod:%s, ret:%s', $post_data['gid'], $post_data['mod'], $ret) . PHP_EOL;
         } catch (\Throwable $t) {
             save_log('game_spin_error', json_encode([
                 'data' => $data,
@@ -61,6 +65,8 @@ class GameSpinJob
         //https
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        // curl_setopt($curl, CURLOPT_PROXY, '127.0.0.1:7897'); // 代理服务器地址和端口
+        // curl_setopt($curl, CURLOPT_PROXYTYPE, CURLPROXY_HTTP); // 代理类型
         //执行命令
         $data = curl_exec($curl);
         //关闭URL请求
