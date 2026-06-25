@@ -26,7 +26,7 @@
       center
     >
       <ElForm ref="formRef" label-width="100px">
-        <ElFormItem :label="$t('fuJi')">
+        <ElFormItem :label="$t('fuJi')" required>
           <ElTreeSelect
             default-expand-all
             v-model="form.pid"
@@ -36,6 +36,7 @@
             check-strictly
             filterable
             :placeholder="$t('qingXuanZe')"
+            :clearable="false"
           />
         </ElFormItem>
         <ElFormItem :label="$t('jiaoSeMing')" required>
@@ -121,14 +122,8 @@
   })
 
   function buildSelectTree(list: any[]) {
-    const top = {
-      id: 0,
-      pid: null,
-      label: $t('dingJiJiaoSe'),
-      children: [] as any[]
-    }
     const map = new Map<number, any>()
-    map.set(0, top)
+    const roots: any[] = []
     for (const item of list) {
       map.set(item.id, { ...item, label: item.name, children: [] })
     }
@@ -138,10 +133,17 @@
       if (parent) {
         parent.children.push(node)
       } else {
-        top.children.push(node)
+        roots.push(node)
       }
     }
-    selectRoles.value = [top]
+    selectRoles.value = roots
+  }
+
+  async function loadRoleTree() {
+    const result = await getRoleList()
+    if (result.code === 200) {
+      buildSelectTree(result.data.list || [])
+    }
   }
 
   const {
@@ -193,8 +195,10 @@
           label: 'caoZuo',
           width: 280,
           fixed: 'right',
-          formatter: (row: any) =>
-            h('div', [
+          formatter: (row: any) => {
+            // 超级管理员组（pid=0）不显示操作按钮
+            if (row.pid === 0) return null
+            return h('div', [
               h(
                 ElButton,
                 { type: 'primary', size: 'small', onClick: () => handleShowAuthDialog(row) },
@@ -211,6 +215,7 @@
                 () => $t('shanChu')
               )
             ])
+          }
         }
       ]
     },
@@ -231,21 +236,24 @@
     }
   })
 
-  function handleShowAddDialog() {
+  async function handleShowAddDialog() {
     isAdd.value = true
     form.id = null
     form.pid = null
     form.role_name = ''
     form.status = 'normal'
+    await loadRoleTree()
+    form.pid = selectRoles.value.length ? selectRoles.value[0].id : null
     showEditDialog.value = true
   }
 
-  function handleShowEditDialog(row: any) {
+  async function handleShowEditDialog(row: any) {
     isAdd.value = false
     form.id = row.id
     form.pid = row.pid
     form.role_name = row.name
     form.status = row.status
+    await loadRoleTree()
     showEditDialog.value = true
   }
 

@@ -72,7 +72,7 @@ export function editRoleItem(data: any) {
 
 // 删除角色
 export function deleteRoleItem(params: any) {
-  return request.get<any>({
+  return request.post<any>({
     url: '/auth/system/roledel',
     params
   })

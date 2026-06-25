@@ -172,13 +172,8 @@
   })
 
   function buildRoleTree(list: any[]) {
-    const top = {
-      id: 0,
-      label: $t('dingJiJiaoSe'),
-      children: [] as any[]
-    }
     const map = new Map<number, any>()
-    map.set(0, top)
+    const roots: any[] = []
     for (const item of list) {
       map.set(item.id, { ...item, label: item.name, children: [] })
     }
@@ -188,10 +183,17 @@
       if (parent) {
         parent.children.push(node)
       } else {
-        top.children.push(node)
+        roots.push(node)
       }
     }
-    roleTree.value = [top]
+    roleTree.value = roots
+  }
+
+  async function loadRoleTree() {
+    const result = await getRoleList()
+    if (result.code === 200) {
+      buildRoleTree(result.data.list || [])
+    }
   }
 
   const {
@@ -303,7 +305,7 @@
   }
 
   // 添加
-  function handleShowAddDialog() {
+  async function handleShowAddDialog() {
     isAdd.value = true
     form.id = null
     form.username = ''
@@ -311,11 +313,12 @@
     form.password = ''
     form.groupId = null
     form.status = 'normal'
+    await loadRoleTree()
     showEditDialog.value = true
   }
 
   // 编辑
-  function handleShowEditDialog(row: any) {
+  async function handleShowEditDialog(row: any) {
     isAdd.value = false
     form.id = row.id
     form.username = row.username
@@ -323,6 +326,7 @@
     form.password = ''
     form.groupId = row.group_id
     form.status = row.status
+    await loadRoleTree()
     showEditDialog.value = true
   }
 

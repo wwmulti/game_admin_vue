@@ -185,6 +185,13 @@ class System extends Backend
     {
         $id = request()->post('id', 0, 'intval');
         $model = model('app\common\model\AuthRule');
+
+        // 检查是否有子节点
+        $child = $model->where('pid', '=', $id)->find();
+        if ($child) {
+            return $this->jsonFail(__('Please delete child nodes first'));
+        }
+
         $count = $model->where('id', '=', $id)->delete();
 
         if ($count) {
@@ -193,12 +200,17 @@ class System extends Backend
         return $this->jsonSucc(); 
     }
 
-    // 菜单状态修改
     public function authstatus()
     {
         $id = request()->post('id', 0, 'intval');
         $status = request()->post('status', 1, 'intval');
         $model = model('app\common\model\AuthRule');
+
+        $row = $model->get(['id' => $id]);
+        if (!$row) {
+            return $this->jsonFail(__('No Results were found'));
+        }
+
         $count = $model->where('id', '=', $id)->update(['status' => $status ? 'normal' : 'disabled']);
 
         if ($count) {
@@ -263,6 +275,13 @@ class System extends Backend
                 return $this->jsonFail(__('The parent group can not found'));
             }
         }
+
+        // 父节点不能是自身或其子节点
+        $groupList = collection($model->select())->toArray();
+        Tree::instance()->init($groupList);
+        if (in_array($pid, Tree::instance()->getChildrenIds($row->id, true))) {
+            return $this->jsonFail(__('The parent group can not be its own child or itself'));
+        }
         
         $params = [
             'status' => $status,
@@ -281,6 +300,10 @@ class System extends Backend
         $pid = request()->post('pid', 0, 'intval');
         $roleName = request()->post('role_name', '', 'trim');
         
+        if (empty($roleName)) {
+            return $this->jsonFail(__('Please input role name'));
+        }
+
         $childrenGroupIds = $this->auth->getChildrenGroupIds(false, $this->adminId);
     
         $model = new AuthGroup;
@@ -305,7 +328,12 @@ class System extends Backend
      */
     public function roledel()
     {
-        $id = request()->get('id', 0, 'intval');      
+        $id = request()->post('id', 0, 'intval');
+
+        $childrenGroupIds = $this->auth->getChildrenGroupIds(false, $this->adminId);
+        if (!in_array($id, $childrenGroupIds)) {
+            return $this->jsonFail(__('You have no permission'));
+        }
 
         $grouplist = $this->auth->getGroups($this->adminId);
         $groupIds = array_map(function ($group) {
@@ -487,7 +515,7 @@ class System extends Backend
         $model = new Admin;
 
         $list = $model->alias('a')->join('auth_group_access_api b', 'a.id=b.uid', 'left')
-            ->join('auth_group c', 'b.group_id=c.id', 'left')
+            ->join('auth_group_api c', 'b.group_id=c.id', 'left')
             //         ->field(' a.id,  a.username,  a.nickname, a.loginfailure,   a.loginip, a.status,  c.name AS groupName, b.group_id, IF(a.logintime IS NOT NULL, 
             //    DATE_FORMAT(FROM_UNIXTIME(logintime), "%Y-%m-%d %H:%i:%s"), 
             //    NULL) AS loginTimeFormatted')
@@ -608,7 +636,9 @@ class System extends Backend
                 Db::startTrans();
                 try {
                     $model->destroy($deleteIds);
-                    (new AuthGroupAccess)->where('uid', 'in', $deleteIds)->delete();
+                    (new AuthGroupAccess)->where('uid', 'in', $deleteIds)
+                        ->where('group_id', 'in', $childrenGroupIds)
+                        ->delete();
                     Db::commit();
                     return $this->jsonSucc();
                 } catch (\Exception $e) {
@@ -718,7 +748,7 @@ class System extends Backend
             }
 
             $params['salt'] = Random::alnum();
-            $params['password'] = md5(md5($password) . $params['salt']);
+            $params['password'] = $this->auth->getEncryptPassword($password, $params['salt']);
         }
 
         if ($googleSwitch) {
