@@ -805,6 +805,74 @@ class GameDataJob
     }
 
     /**
+     * g759任务
+     */
+    protected function g759Task($url, $body, $i, $redis, $logId, $nums)
+    {
+        //成功计数
+        $flag = 0;
+        //每轮的局数冗余请求次数防止请求达不到配置的局数
+        $ext = 1000;
+        $fails = 0; // 失败次数
+        $msg = '';
+        $cacheKey = sprintf('log:%s:rounds:%s', $logId, $i);
+        foreach (range(1, $nums + $ext) as $no) {
+            try {
+                if ($flag >= $nums) {
+                    return;
+                }
+
+                if ($fails >= $this->errLimit) {
+                    break;
+                }
+
+                $result = wget($url, $body, [CURLOPT_HTTPHEADER => ['Content-Type: multipart/form-data']]);
+                // var_dump(json_encode($result));
+                if (empty($result['dt']) || !empty($result['err'])) {
+                    // if ($no >= $nums) return;
+                    $fails++;
+                    $msg = !empty($result['err']) ? json_encode($result['err'])  : 'dt为空';
+                    continue;
+                }
+
+                $data = $result['dt']['si'];
+                $aw = $data['aw'];
+                $tbb = $data['tbb'];
+
+                // 重置连续失败次数
+                $fails = 0;
+
+                //按轮数累计
+                $redis->handler()->hIncrByFloat($cacheKey, 'aw', $aw);
+                $redis->handler()->hIncrByFloat($cacheKey, 'tbb', $tbb);
+                // echo sprintf('round: %s, last_bl: %s, now_bl: %s, tbb: %s, aw: %s' . PHP_EOL, $i, $bl, $data['bl'], $tbb, $aw);
+                $redis->handler()->expire($cacheKey, $this->cacheTime);
+                $flag++;
+                
+            } catch (\Exception $e) {
+                $fails++;
+                $msg = $e->getMessage();
+                // var_dump($e->getMessage());
+                save_log('game_data_job_error_in', json_encode([
+                    'log_id' => $logId,
+                    'i' => $i,
+                    'error' => $e->getMessage(),
+                ]));
+            }
+        }
+
+        //结果少于配置局数删除
+        if ($flag < $nums) {
+            $redis->handler()->del($cacheKey);
+        }
+
+        if ($fails >= $this->errLimit) {
+            throw new \Exception(sprintf('连续请求失败次数超过%s次，失败信息：%s', $this->errLimit, $msg));
+        }
+        return;
+    }
+
+    /**
      * 统计命令
      *
      * @return void

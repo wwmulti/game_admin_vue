@@ -10,6 +10,7 @@ use app\admin\service\game\KessGame;
 use app\admin\service\game\WgGame;
 use app\admin\service\game\PpGame;
 use app\admin\service\game\UuGame;
+use app\admin\service\game\G759Game;
 
 /**
  * 游戏工厂
@@ -53,7 +54,7 @@ class GameFactory
         self::GAME_TYPE_CP => CpGame::class,
         self::GAME_TYPE_UU => UuGame::class,
         self::GAME_TYPE_PP => PpGame::class,
-        // self::GAME_TYPE_G759 => G759Game::class,
+        self::GAME_TYPE_G759 => G759Game::class,
     ];
 
     /**
