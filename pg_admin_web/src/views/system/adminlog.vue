@@ -256,7 +256,7 @@
       if (result.code === 200) {
         ElMessage.success($t('shanChuChengGong'))
         showDeleteDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shanChuShiBai'))
       }
@@ -287,7 +287,7 @@
         })
         if (result.code === 200) {
           ElMessage.success($t('shanChuChengGong'))
-          await getData()
+          await refreshData()
         } else {
           ElMessage.error(result.msg || $t('shanChuShiBai'))
         }

@@ -13,3 +13,15 @@ export function login(data: any) {
     // showErrorMessage: false // 不显示错误消息
   })
 }
+
+/**
+ * 谷歌验证码验证（登录前调用）
+ * @param data { username, password }
+ */
+export function verify(data: any) {
+  return request.post<any>({
+    url: '/index/verify',
+    data,
+    showErrorMessage: false
+  })
+}

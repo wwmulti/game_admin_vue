@@ -169,7 +169,7 @@
       } else {
         ElMessage.error(result.message)
       }
-      await getData()
+      await refreshData()
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       ElMessage.error($t('httpMsg.requestFailed'))
@@ -199,7 +199,7 @@
         if (result.code === 200) {
           showEditDialog.value = false
           ElMessage.success($t('chengGong'))
-          await getData()
+          await refreshData()
         } else {
           ElMessage.error(result.message)
         }
@@ -207,7 +207,7 @@
         const result = await addAuthMenu(params)
         if (result.code === 200) {
           ElMessage.success($t('chengGong'))
-          await getData()
+          await refreshData()
           showEditDialog.value = false
         }
       }
@@ -223,7 +223,7 @@
         id: form.id
       })
       if (result.code === 200) {
-        await getData()
+        await refreshData()
         showDeleteDialog.value = false
         ElMessage.success($t('chengGong'))
       } else {

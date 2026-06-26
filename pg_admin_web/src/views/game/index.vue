@@ -400,7 +400,7 @@
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))
         showEditDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shiBai'))
       }
@@ -423,7 +423,7 @@
           const result = await deleteRoom({ ids: row.id })
           if (result.code === 200) {
             ElMessage.success($t('chengGong'))
-            await getData()
+            await refreshData()
           } else {
             ElMessage.error(result.msg || $t('shiBai'))
           }
@@ -462,7 +462,7 @@
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))
         showBatchCategoryDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shiBai'))
       }

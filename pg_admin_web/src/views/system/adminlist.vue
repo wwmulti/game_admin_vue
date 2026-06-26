@@ -92,8 +92,8 @@
   import { $t } from '@/locales'
   import { useTable } from '@/hooks'
   import { h, ref, reactive, computed } from 'vue'
-  import { ElButton, ElMessage, ElLoading, ElMessageBox, ElTreeSelect, ElTag } from 'element-plus'
-  import { getAdminList, addAdminItem, editAdminItem, deleteAdminItem, getRoleList } from '@/api/system'
+  import { ElButton, ElMessage, ElLoading, ElMessageBox, ElTreeSelect, ElSwitch } from 'element-plus'
+  import { getAdminList, addAdminItem, editAdminItem, deleteAdminItem, getRoleList, editAdminAttr, unbindingAdmin } from '@/api/system'
 
   const searchBarRef = ref()
   const searchForm = ref<Record<string, any>>({
@@ -218,7 +218,8 @@
       columnsFactory: () => [
         {
           type: 'selection',
-          width: 50
+          width: 50,
+          selectable: (row: any) => row.id !== 1
         },
         {
           label: 'ID',
@@ -243,12 +244,53 @@
         {
           label: 'zhuangTai',
           prop: 'status',
-          width: 90,
+          width: 100,
           formatter: (row: any) => {
-            const isNormal = row.status === 'normal'
-            return h(ElTag, { type: isNormal ? 'success' : 'danger' }, () =>
-              isNormal ? $t('zhengChang') : $t('yinCang')
-            )
+            return h(ElSwitch, {
+              modelValue: row.status === 'normal',
+              activeValue: true,
+              inactiveValue: false,
+              onChange: async (val: string | number | boolean) => {
+                const loadingInstance = ElLoading.service({ fullscreen: true, text: '' })
+                try {
+                  const result = await editAdminAttr({ id: row.id, field: 'status', value: val ? 'normal' : 'hidden' })
+                  if (result.code === 200) {
+                    ElMessage.success($t('chengGong'))
+                    await refreshData()
+                  } else {
+                    ElMessage.error(result.msg || $t('shiBai'))
+                  }
+                } finally {
+                  loadingInstance.close()
+                }
+              }
+            })
+          }
+        },
+        {
+          label: $t('guGeYanZheng'),
+          prop: 'google_switch',
+          width: 110,
+          formatter: (row: any) => {
+            return h(ElSwitch, {
+              modelValue: !!row.google_switch,
+              activeValue: true,
+              inactiveValue: false,
+              onChange: async (val: string | number | boolean) => {
+                const loadingInstance = ElLoading.service({ fullscreen: true, text: '' })
+                try {
+                  const result = await editAdminAttr({ id: row.id, field: 'google_switch', value: val ? 1 : 0 })
+                  if (result.code === 200) {
+                    ElMessage.success($t('chengGong'))
+                    await refreshData()
+                  } else {
+                    ElMessage.error(result.msg || $t('shiBai'))
+                  }
+                } finally {
+                  loadingInstance.close()
+                }
+              }
+            })
           }
         },
         {
@@ -260,21 +302,29 @@
         {
           prop: 'operate',
           label: 'caoZuo',
-          width: 180,
+          width: 210,
           fixed: 'right',
-          formatter: (row: any) =>
-            h('div', [
-              h(
-                ElButton,
-                { type: 'primary', size: 'small', onClick: () => handleShowEditDialog(row) },
-                () => $t('bianJi')
-              ),
-              h(
-                ElButton,
-                { type: 'danger', size: 'small', onClick: () => handleShowDeleteDialog(row) },
-                () => $t('shanChu')
-              )
-            ])
+          formatter: (row: any) => {
+            // 超级管理员组（pid=0）不显示操作按钮
+            if (row.id === 1) return null
+            return  h('div', [
+                h(
+                  ElButton,
+                  { type: 'warning',size: 'small', disabled: !row.google_verify, onClick: () => handleUnbindGoogle(row) },
+                  () => $t('jieBangGuGe')
+                ),
+                h(
+                  ElButton,
+                  { type: 'primary', size: 'small', onClick: () => handleShowEditDialog(row) },
+                  () => $t('bianJi')
+                ),
+                h(
+                  ElButton,
+                  { type: 'danger', size: 'small', onClick: () => handleShowDeleteDialog(row) },
+                  () => $t('shanChu')
+                )
+            ].filter(Boolean))
+          }
         }
       ]
     },
@@ -302,6 +352,28 @@
 
   function handleReset() {
     resetSearchParams()
+  }
+
+  // 解绑谷歌验证
+  async function handleUnbindGoogle(row: any) {
+    ElMessageBox.confirm(
+      $t('queDingYaoJieBangGuGeYanZheng', [row.username]),
+      $t('common.tips'),
+      { confirmButtonText: $t('queDing'), cancelButtonText: $t('quXiao'), type: 'warning' }
+    ).then(async () => {
+      const loadingInstance = ElLoading.service({})
+      try {
+        const result = await unbindingAdmin({ id: row.id })
+        if (result.code === 200) {
+          ElMessage.success($t('chengGong'))
+          await refreshData()
+        } else {
+          ElMessage.error(result.msg || $t('shiBai'))
+        }
+      } finally {
+        loadingInstance.close()
+      }
+    }).catch(() => {})
   }
 
   // 添加
@@ -344,7 +416,7 @@
         if (result.code === 200) {
           ElMessage.success($t('chengGong'))
           showEditDialog.value = false
-          await getData()
+          await refreshData()
         } else {
           ElMessage.error(result.message)
         }
@@ -363,7 +435,7 @@
         if (result.code === 200) {
           ElMessage.success($t('chengGong'))
           showEditDialog.value = false
-          await getData()
+          await refreshData()
         } else {
           ElMessage.error(result.message)
         }
@@ -389,7 +461,7 @@
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))
         showDeleteDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.message)
       }
@@ -420,7 +492,7 @@
         })
         if (result.code === 200) {
           ElMessage.success($t('chengGong'))
-          await getData()
+          await refreshData()
         } else {
           ElMessage.error(result.message)
         }

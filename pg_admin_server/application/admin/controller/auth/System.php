@@ -519,7 +519,7 @@ class System extends Backend
             //         ->field(' a.id,  a.username,  a.nickname, a.loginfailure,   a.loginip, a.status,  c.name AS groupName, b.group_id, IF(a.logintime IS NOT NULL, 
             //    DATE_FORMAT(FROM_UNIXTIME(logintime), "%Y-%m-%d %H:%i:%s"), 
             //    NULL) AS loginTimeFormatted')
-            ->field(' a.id,  a.username,  a.nickname, a.loginfailure,   a.loginip, a.status,  c.name AS groupName, b.group_id, a.logintime AS loginTimeFormatted')
+            ->field(' a.id,  a.username,  a.nickname, a.loginfailure,   a.loginip, a.status, a.google_switch, a.google_verify, c.name AS groupName, b.group_id, a.logintime AS loginTimeFormatted')
             ->where($condition)->order('a.id desc')->page($page)->limit($limit)->select();
 
         
@@ -701,6 +701,58 @@ class System extends Backend
             Db::rollback();
             return $this->jsonFail($e->getMessage());
         } 
+    }
+
+    public function adminAttrEdit()
+    {
+        $id = request()->post('id', 0, 'intval');
+        $field = request()->post('field', '', 'trim');
+        $value = request()->post('value', '');
+
+        if (!$id || !$field) {
+            return $this->jsonFail(__('Parameter error'));
+        }
+
+        $childrenAdminIds = $this->auth->getChildrenAdminIds(true, $this->adminId);
+        if (!in_array($id, $childrenAdminIds)) {
+            return $this->jsonFail(__('You have no permission'));
+        }
+
+        $allowedFields = ['status', 'google_switch'];
+        if (!in_array($field, $allowedFields)) {
+            return $this->jsonFail(__('Field not allowed'));
+        }
+
+        $model = new Admin;
+        $model->where(['id' => $id])->update([$field => $value]);
+        return $this->jsonSucc();
+    }
+
+    /**
+     * 解绑谷歌
+     */
+    public function unbinding()
+    {
+        $id = request()->post('id', 0, 'intval');
+        if (!$id) {
+            return $this->jsonFail(__('Parameter error'));
+        }
+
+        $childrenAdminIds = $this->auth->getChildrenAdminIds(true, $this->adminId);
+        if (!in_array($id, $childrenAdminIds)) {
+            return $this->jsonFail(__('You have no permission'));
+        }
+
+        $model = new Admin;
+        $row = $model->where('id', $id)->find();
+        if ($row && $row['google_verify']) {
+            $model->where('id', $id)->update([
+                'google_verify' => '',
+                'google_switch' => 0,
+            ]);
+            return $this->jsonSucc(__('解绑成功'));
+        }
+        return $this->jsonFail(__('操作失败，请联系管理员'));
     }
 
     /**

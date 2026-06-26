@@ -300,7 +300,7 @@
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))
         showAddDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shiBai'))
       }
@@ -331,7 +331,7 @@
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))
         showEditDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shiBai'))
       }
@@ -369,7 +369,7 @@
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))
         showBatchUpdatesDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shiBai'))
       }
@@ -403,7 +403,7 @@
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))
         showBatchConfigDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shiBai'))
       }

@@ -324,7 +324,7 @@
         if (result.code === 200) {
           ElMessage.success($t('chengGong'))
           showEditDialog.value = false
-          await getData()
+          await refreshData()
         } else {
           ElMessage.error(result.msg || $t('shiBai'))
         }
@@ -342,7 +342,7 @@
         if (result.code === 200) {
           ElMessage.success($t('chengGong'))
           showEditDialog.value = false
-          await getData()
+          await refreshData()
         } else {
           ElMessage.error(result.msg || $t('shiBai'))
         }
@@ -368,7 +368,7 @@
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))
         showDeleteDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shiBai'))
       }
@@ -400,7 +400,7 @@
           })
           if (result.code === 200) {
             ElMessage.success($t('chengGong'))
-            await getData()
+            await refreshData()
           } else {
             ElMessage.error(result.msg || $t('shiBai'))
           }

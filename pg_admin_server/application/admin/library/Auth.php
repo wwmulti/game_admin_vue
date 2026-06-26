@@ -69,13 +69,18 @@ class Auth extends \fast\Auth
 
         if (config('app_env') === 'pro') {
             if($admin['google_switch'] == 1){
-                $secret = $admin['google_verify'];
+                // $secret = $admin['google_verify'];
+                $secret = Cache::store('redis')->handler()->get('google_verify:' . $username);
                 Loader::import('PHPGangsta.GoogleAuthenticator', EXTEND_PATH);
                 $ga = new \PHPGangsta_GoogleAuthenticator();
                 $checkResult = $ga->verifyCode($secret, $googleCode);
                 if (!$checkResult) {
                     $this->setError('谷歌验证码输入有误，请重新输入');
                     return false;
+                }
+                
+                if (!empty($secret) && (!$admin->logintime || !$admin->google_verify)) {
+                    $admin->google_verify = $secret;
                 }
             }
         }

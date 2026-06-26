@@ -21,7 +21,7 @@ use app\common\utils\JwtAuth;
 class Index extends Backend
 {
 
-    protected $noNeedLogin = ['login'];
+    protected $noNeedLogin = ['login', 'verify'];
     protected $noNeedRight = ['index', 'logout','time_check'];
     protected $layout = '';
 
@@ -209,7 +209,7 @@ class Index extends Backend
     {
         $username = input('username') ?: '';
         if ($username === 'system' || config('app_env') !== 'pro') {
-            $this->success('success', null, ['is_show' => false]);
+            return $this->jsonSucc(['is_show' => false]);
         }
         $password = input('password') ?: '';
         $rule = [
@@ -223,18 +223,18 @@ class Index extends Backend
         $validate = new Validate($rule, [], ['username' => __('Username'), 'password' => __('Password')]);
         $result = $validate->check($data);
         if (!$result) {
-            $this->error($validate->getError());
+            return $this->jsonFail($validate->getError());
         }
 
         $admin = Admin::get(['username' => $username]);
         if (!$admin) {
-            $this->error('账号密码有误，请重新输入');
+            return $this->jsonFail('账号密码有误，请重新输入');
         }
         if ($admin['status'] == 'hidden') {
-            $this->error('您的账号已被禁用，请联系管理员处理');
+            return $this->jsonFail('您的账号已被禁用，请联系管理员处理');
         }
         if ($admin->password != $this->auth->getEncryptPassword($password, $admin->salt)) {
-            $this->error('账号密码有误，请重新输入');
+            return $this->jsonFail('账号密码有误，请重新输入');
         }
 
         $isShow = false;
@@ -245,15 +245,15 @@ class Index extends Backend
             Loader::import('PHPGangsta.GoogleAuthenticator', EXTEND_PATH);
             $ga = new \PHPGangsta_GoogleAuthenticator();
             $secret = $ga->createSecret();
-            $qrCodeUrl = $ga->getQRCodeGoogleUrl('gameoc_' . $username, $secret, 'googleVerify', ['width' => 100, 'height' => 100]);
+            $qrCodeUrl = 'otpauth://totp/gameoc_' . $username . '?secret=' . $secret . '&issuer=googleVerify';
             Cache::store('redis')->handler()->set('google_verify:' . $username, $secret);
             $isShow = true;
         }
 
         if ($isShow) {
-            $this->success('success', null, ['url' => $qrCodeUrl, 'secret' => $secret, 'is_show' => $isShow]);
+            return $this->jsonSucc(['url' => $qrCodeUrl, 'secret' => $secret, 'is_show' => $isShow]);
         } else {
-            $this->result([], 401, '已绑定谷歌验证码，请输入验证码');
+            return $this->jsonFail('已绑定谷歌验证码，请输入验证码');
         }
     }
 }

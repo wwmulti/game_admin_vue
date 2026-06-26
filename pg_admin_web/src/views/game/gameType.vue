@@ -262,7 +262,7 @@
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))
         showDialog.value = false
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shiBai'))
       }
@@ -283,7 +283,7 @@
       const result = await deleteRoomType({ ids: row.id })
       if (result.code === 200) {
         ElMessage.success($t('shanChuChengGong'))
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shanChuShiBai'))
       }
@@ -313,7 +313,7 @@
       if (result.code === 200) {
         ElMessage.success($t('shanChuChengGong'))
         selectedIds.value = []
-        await getData()
+        await refreshData()
       } else {
         ElMessage.error(result.msg || $t('shanChuShiBai'))
       }

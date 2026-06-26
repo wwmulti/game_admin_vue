@@ -72,6 +72,7 @@
 <script setup lang="ts">
 import { getProfile, updateProfile, uploadAvatar } from '@/api/system'
 import { $t } from '@/locales'
+import { copy } from '@/utils/common'
 import QrcodeVue from 'qrcode.vue'
 
 defineOptions({ name: 'Profile' })
@@ -108,10 +109,10 @@ const fetchProfile = async () => {
 }
 
 const handleCopySecret = async () => {
-  try {
-    await navigator.clipboard.writeText(form.google_verify)
+  const ok = await copy(form.google_verify)
+  if (ok) {
     ElMessage.success($t('fuZhiChengGong'))
-  } catch {
+  } else {
     ElMessage.error($t('fuZhiShiBai'))
   }
 }

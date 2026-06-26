@@ -126,6 +126,22 @@ export function deleteAdminItem(data: any) {
   })
 }
 
+// 管理员属性编辑（状态、谷歌验证开关等）
+export function editAdminAttr(data: any) {
+  return request.post<any>({
+    url: '/auth/system/adminAttrEdit',
+    data
+  })
+}
+
+// 解绑谷歌验证
+export function unbindingAdmin(data: any) {
+  return request.post<any>({
+    url: '/auth/system/unbinding',
+    data
+  })
+}
+
 // 管理员日志列表
 export function getAdminLog(params: any) {
   return request.get<any>({
