@@ -20,7 +20,7 @@ class WinRealtime extends Backend
 {
 
     protected $model = null;
-    protected $noNeedRight = ['wingo_room', 'room_name', 'details', 'LatestData'];
+    protected $noNeedRight = ['wingo_room', 'room_name'];
     protected $room_id = 1001;
 
     public function _initialize()

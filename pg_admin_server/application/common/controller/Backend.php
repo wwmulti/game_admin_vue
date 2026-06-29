@@ -280,13 +280,21 @@ class Backend extends Controller
                     );
                 }
 
-                $this->auth->userInfo = $this->getAdmin();
-
-                $roleService = new SystemRoleServices();
-                if ($this->adminId && !$roleService->verifiAuth($rule, $this->adminId)) {
+                $userInfo = $this->getAdmin();
+                if(empty($userInfo) || $userInfo['status'] != 'normal'){
                     throw new \think\exception\HttpResponseException(
-                        json(['msg' => '没有权限', 'code' => 410001])
+                        json(['msg' => __('Please log in again'), 'code' => 410000])
                     );
+                }
+                $this->auth->userInfo = $userInfo;
+
+                if (!$this->auth->match($this->noNeedRight)) { // 方法需登录但不需要权限验证
+                    $roleService = new SystemRoleServices();
+                    if ($this->adminId && !$roleService->verifiAuth($rule, $this->adminId)) {
+                        throw new \think\exception\HttpResponseException(
+                            json(['msg' => '没有权限', 'code' => 410001])
+                        );
+                    }
                 }
             }
 
@@ -321,7 +329,7 @@ class Backend extends Controller
             ->where('a.id', $adminId)
             ->find();
         if (!$admin) {
-            return $this->jsonFail('用户未登录');
+            return [];
         } else {
             return $admin;
         }

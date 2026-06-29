@@ -16,11 +16,12 @@ use think\Env;
 use app\job\GameSpinJob;
 use think\Queue;
 use think\Cache;
+use app\admin\model\RoomMod;
 
 class SpinStatistic extends Backend
 {
 
-    protected $noNeedRight = ['room_name', 'room_config', 'imitatePost', 'pollStatus', 'checkGames', 'getCheckGames', 'imitateInit'];
+    protected $noNeedRight = ['modList'];
     protected $model = null;
 
     public function _initialize()
@@ -86,6 +87,12 @@ class SpinStatistic extends Backend
                 ->paginate($limit);
         }
 
+        $roomIds = array_column($list->items(), 'room_id');
+        $modOptions = RoomMod::where('id', 'in', $roomIds)->column('mod,desc');
+        if (empty($modOptions)){
+            $modOptions = [1 => "普通"];
+        }
+
         foreach ($list as &$vo) {
             $vo['rtp'] = $rtp_list[$vo['rtp_id']] ?? '-';
             $vo['room_name'] = $rooms[$vo['room_id']] ?? '';
@@ -101,6 +108,7 @@ class SpinStatistic extends Backend
 
             $vo['special_trigger_probability'] = bcmul(bcdiv($vo['spe_times'],$vo['bet_time'],4),100,2). "%";
             $vo['free_trigger_probability'] =  bcmul(bcdiv($vo['free_times'],$vo['bet_time'],4),100,2). "%";
+            $vo['mod_name'] = $modOptions[$vo['mod']] ?? $vo['mod'];
         }
 
         $result = [
@@ -110,6 +118,15 @@ class SpinStatistic extends Backend
             'rtps' => $rtp_list,
         ];
         return $this->jsonSucc($result);
+    }
+
+    public function modList($roomId = 0)
+    {
+        $mod = RoomMod::where('id', $roomId)->field('mod,desc')->select();
+        if (empty($mod)){
+            $mod = [["mod" => 1, "desc" => "普通"]];
+        }
+        return $this->jsonSucc($mod);
     }
 
 
@@ -143,21 +160,30 @@ class SpinStatistic extends Backend
 
     public function roomConfig()
     {
+        $defConfig = [
+            'bet' => [["id" => 1, "bet_amount" => FormatMoney(1000)]],
+            'mod' => [["mod" => 1, "desc" => "普通"]]
+        ];
+
         $room_id = $this->request->get('room_id/a');
         if (empty($room_id) || count($room_id) > 1) {
-            return $this->jsonSucc([["id" => 1, "bet_amount" => FormatMoney(1000)]]);
+            return $this->jsonSucc($defConfig);
         }
         $RoomData = BetAmountConfig::whereIn('room_id', $room_id)->field('bet_amount')->select();
         foreach ($RoomData as $key => &$vo) {
             $vo['id'] = $key;
             $vo['bet_amount'] = FormatMoney($vo['bet_amount']);
         }
-        if(empty($RoomData)){
-            $RoomData=[
-                ["id"=>1,"bet_amount"=>FormatMoney(1000)]
-            ];
+        if(!empty($RoomData)){
+            $defConfig['bet'] = $RoomData;
         }
-        return $this->jsonSucc($RoomData);
+
+        // mod
+        $modData = RoomMod::whereIn('id', $room_id)->field('mod,desc')->select();
+        if(!empty($modData)){
+            $defConfig['mod'] = $modData;
+        }
+        return $this->jsonSucc($defConfig);
     }
 
     public function add()

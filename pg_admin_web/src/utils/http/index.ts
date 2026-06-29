@@ -92,7 +92,7 @@ axiosInstance.interceptors.response.use(
     if (code === ApiStatus.unauthorized) handleUnauthorizedError(msg)
 
     // POST 请求登录过期处理
-    if (code === ApiStatus.loginExpired) {
+    if (code === ApiStatus.loginExpired || code === ApiStatus.pleaseLogInAgain) {
       handleLoginExpired(msg)
       return response
     }

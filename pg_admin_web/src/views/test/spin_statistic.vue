@@ -32,7 +32,9 @@
               <ElInput v-model="postForm.number" style="width: 160px" />
             </ElFormItem>
             <ElFormItem :label="$t('youXiMoShi')" prop="room_type">
-              <ElInput v-model="postForm.room_type" style="width: 160px" />
+              <ElSelect v-model="postForm.room_type" style="width: 160px" clearable filterable>
+                <ElOption v-for="item in modOptionsForm" :key="item.mod" :label="item.desc" :value="item.mod" />
+              </ElSelect>
             </ElFormItem>
             <ElFormItem>
               <ElButton type="primary" :loading="postLoading" @click="handlePostSubmit">{{ $t('queDing') }}</ElButton>
@@ -119,7 +121,7 @@ function startGlobalTimer() {
 
 <script setup lang="ts">
   import { useTable } from '@/hooks'
-  import { h, ref, computed, watch, onActivated, onDeactivated, onBeforeUnmount } from 'vue'
+  import { ref, computed, watch, onActivated, onDeactivated, onBeforeUnmount } from 'vue'
   import { useRoute } from 'vue-router'
   import { $t } from '@/locales'
   import {
@@ -139,7 +141,8 @@ function startGlobalTimer() {
     getSpinStatisticList,
     getRoomConfig,
     apiPostSpin,
-    onceMoreSpin
+    onceMoreSpin,
+    getModList
   } from '@/api/spin'
 
   defineOptions({ name: 'TestSpinStatistic' })
@@ -188,23 +191,40 @@ function startGlobalTimer() {
     rtp_id: '',
     bet_amount: '',
     number: '',
-    room_type: '0'
+    room_type: ''
   })
   const roomOptions = ref<any[]>([])
   const rtpOptions = ref<any[]>([])
+  const modOptions = ref<any[]>([])
+  const modOptionsForm = ref<any[]>([])
   const betAmountOptions = ref<any[]>([])
 
   async function handleRoomChange(val: string | number | string[]) {
     postForm.value.bet_amount = ''
+    postForm.value.room_type = ''
     if (!val) {
       betAmountOptions.value = []
+      modOptionsForm.value = []
       return
     }
     try {
       const res = await getRoomConfig({ room_id: val })
-      betAmountOptions.value = res.data || res || []
+      betAmountOptions.value = res.data.bet || res || []
+      modOptionsForm.value = res.data.mod || res || []
     } catch {
       betAmountOptions.value = []
+      modOptionsForm.value = []
+    }
+  }
+
+  async function loadModList(roomId: string | number) {
+    try {
+      const res = await getModList({ roomId: roomId || 0 })
+      if (res.code === 200) {
+        modOptions.value = res.data || []
+      }
+    } catch {
+      modOptions.value = []
     }
   }
 
@@ -258,6 +278,16 @@ function startGlobalTimer() {
     rebate_diff: ''
   })
 
+  // 监听搜索栏游戏切换，更新模选项
+  const prevRoomId = ref()
+  watch(() => searchForm.value.room_id, (val) => {
+    if (val !== prevRoomId.value) {
+      searchForm.value.mod = ''
+      prevRoomId.value = val
+      loadModList(val || 0)
+    }
+  }, { immediate: true })
+
   const formItems = computed(() => [
     {
       label: '',
@@ -279,10 +309,11 @@ function startGlobalTimer() {
         placeholder: $t('moShi'),
         style: { width: '100px' },
         clearable: true,
-        options: [
+        /* options: [
           { label: $t('puTong'), value: '0' },
           { label: $t('biZhongMoShi'), value: '2' }
-        ]
+        ] */
+       options: modOptions.value.map((item: any) => ({ label: item.desc, value: item.mod }))
       }
     },
     {
@@ -408,10 +439,8 @@ function startGlobalTimer() {
         },
         {
           label: $t('moShi'),
-          prop: 'mod',
-          width: 70,
-          formatter: (row: any) =>
-            h('span', null, row.mod === '2' ? $t('biZhongMoShi') : $t('puTong'))
+          prop: 'mod_name',
+          width: 70
         },
         { label: $t('xiaZhuJinE'), prop: 'bet_amount', minWidth: 100 },
         { label: $t('xiaZhuCiShu'), prop: 'bet_time', minWidth: 100 },

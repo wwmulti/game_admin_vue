@@ -82,3 +82,10 @@ export function checkSpin(params: any) {
     params
   })
 }
+
+export function getModList(params: any) {
+  return request.get<any>({
+    url: '/test/spin_statistic/modList',
+    params
+  })
+}

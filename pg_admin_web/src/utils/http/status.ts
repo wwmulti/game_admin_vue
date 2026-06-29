@@ -15,5 +15,6 @@ export enum ApiStatus {
   serviceUnavailable = 503, // 服务不可用
   gatewayTimeout = 504, // 网关超时
   httpVersionNotSupported = 505, // HTTP版本不支持
+  pleaseLogInAgain = 410000, // 请重新登录
   loginExpired = 420000 // 登录过期
 }
