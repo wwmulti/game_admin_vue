@@ -9,6 +9,7 @@ use think\exception\DbException;
 use think\exception\PDOException;
 use think\exception\ValidateException;
 use think\Env;
+use app\admin\model\RoomType;
 
 /**
  * 游戏管理
@@ -115,21 +116,15 @@ class Room extends Backend
 
     // 类型选择
     public function type_id_name(){
+        $typeData = RoomType::where('status', 1)->field('id,name')->select();
+        $ret = [];
+        foreach ($typeData as $vo){
+            $ret[] = ['id' => $vo['id'],'name' => $vo['name']];
+        }
+
         return $this->jsonSucc([
             "total"=>10,
-            "list"=>[
-                // ["id"=>1,"name"=>"wingo"],
-                ["id"=>2,"name"=>"pg"],
-                // ["id"=>3,"name"=>"gg5"],
-                ["id"=>5,"name"=>"kess"],
-                ["id"=>6,"name"=>"自研"],
-                ["id"=>7,"name"=>"wg"],
-                ["id"=>8,"name"=>"ambs"],
-                ["id"=>9,"name"=>"cp"],
-                ["id"=>10,"name"=>"uu"],
-                ["id"=>11,"name"=>"pp"],
-                ["id"=>12, "name"=>"g759"],
-            ],
+            "list"=> $ret,
         ]);
     }
 
