@@ -79,6 +79,13 @@ export interface UseTableConfig<
       /** 每页条数字段名，默认为 'size' */
       size?: string
     }
+    /** 服务端排序配置 */
+    sortConfig?: {
+      /** 排序字段参数字段名，默认 'sort' */
+      key?: string
+      /** 排序方向参数字段名，默认 'order' */
+      orderKey?: string
+    }
   }
 
   // 数据处理
@@ -135,6 +142,10 @@ export function useTable<TApiFn extends (params: any) => Promise<any>>(config: {
       current?: string
       size?: string
     }
+    sortConfig?: {
+      key?: string
+      orderKey?: string
+    }
   }
   transform?: {
     dataTransformer?: (data: InferRecordType<InferApiResponse<TApiFn>>[]) => InferRecordType<InferApiResponse<TApiFn>>[]
@@ -184,7 +195,8 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
       excludeParams = [],
       immediate = true,
       columnsFactory,
-      paginationKey
+      paginationKey,
+      sortConfig
     },
     transform: { dataTransformer, responseAdapter = defaultResponseAdapter } = {},
     performance: {
@@ -200,6 +212,10 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
   // 分页字段名配置：优先使用传入的配置，否则使用全局配置
   const pageKey = paginationKey?.current || tableConfig.paginationKey.current
   const sizeKey = paginationKey?.size || tableConfig.paginationKey.size
+
+  // 排序字段名配置
+  const sortKey = sortConfig?.key || 'sort'
+  const orderKey = sortConfig?.orderKey || 'order'
 
   // 响应式触发器，用于手动更新缓存统计信息
   const cacheUpdateTrigger = ref(0)
@@ -267,6 +283,10 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
     ...pagination,
     small: width.value < 768
   }))
+
+  // 排序状态
+  const sortField = ref('')
+  const sortOrder = ref('')
 
   // 列配置
   const { t } = useI18n()
@@ -491,7 +511,7 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
   const debouncedGetDataByPage = createSmartDebounce(getDataByPage, debounceTime)
 
   // 重置搜索参数
-  const resetSearchParams = async (): Promise<void> => {
+  const resetSearchParams = async (tableRef?: { clearSort?: () => void }): Promise<void> => {
     // 取消防抖的搜索
     debouncedGetDataByPage.cancel()
 
@@ -514,6 +534,13 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
     pagination.current = 1
     pagination.size = defaultPagination[sizeKey] as number
 
+    // 清空排序状态
+    sortField.value = ''
+    sortOrder.value = ''
+
+    // 清空 Element Plus 表格的排序状态，清除 UI 上的排序指示器
+    tableRef?.clearSort?.()
+
     // 清空错误状态
     error.value = null
 
@@ -535,6 +562,10 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
     const paramsRecord = searchParams as Record<string, unknown>
     const currentSize = pagination.size || ((paramsRecord[sizeKey] as number) ?? 10)
 
+    // 保存当前排序参数
+    const currentSort = paramsRecord[sortKey]
+    const currentOrder = paramsRecord[orderKey]
+
     Object.keys(searchParams).forEach((key) => {
       if (key !== pageKey && key !== sizeKey) {
         delete paramsRecord[key]
@@ -549,6 +580,12 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
       },
       params || {}
     )
+
+    // 恢复排序参数
+    if (currentSort) {
+      paramsRecord[sortKey] = currentSort
+      paramsRecord[orderKey] = currentOrder
+    }
 
     pagination.current = 1
     pagination.size = currentSize
@@ -604,6 +641,27 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
     } finally {
       isCurrentChanging = false
     }
+  }
+
+  // 处理排序变化
+  const handleSortChange = ({ prop, order }: { prop?: string; order?: string | null }): void => {
+    const paramsRecord = searchParams as Record<string, unknown>
+    if (order) {
+      sortField.value = prop || ''
+      sortOrder.value = order === 'ascending' ? 'asc' : 'desc'
+      paramsRecord[sortKey] = sortField.value
+      paramsRecord[orderKey] = sortOrder.value
+    } else {
+      sortField.value = ''
+      sortOrder.value = ''
+      delete paramsRecord[sortKey]
+      delete paramsRecord[orderKey]
+    }
+    // 排序变化回到第一页
+    pagination.current = 1
+    paramsRecord[pageKey] = 1
+    clearCache(CacheInvalidationStrategy.CLEAR_CURRENT, '排序变更')
+    getData()
   }
 
   // 针对不同业务场景的刷新方法
@@ -739,6 +797,14 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
     replaceSearchParams,
     /** 重置搜索参数 */
     resetSearchParams,
+
+    // 排序相关
+    /** 当前排序字段 */
+    sortField,
+    /** 当前排序方向 */
+    sortOrder,
+    /** 处理排序变化（ElTable @sort-change 事件） */
+    handleSortChange,
 
     // 数据操作 - 更明确的操作意图
     /** 加载数据 */

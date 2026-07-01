@@ -381,11 +381,19 @@ class Backend extends Controller
 
     // 新前端传参处理
     protected function buildparams($op = [], $ignoreFields = []) {
-        $sort = $this->request->get("sort", !empty($this->model) && $this->model->getPk() ? $this->model->getPk() : 'id');
-        $order = $this->request->get("order", "DESC");
+        $sort = $this->request->get("sort", '');
+        $order = $this->request->get("order", '');
         $page = $this->request->get("page/d", 1);
         $limit = $this->request->get("limit/d", 0);
         $limit = $limit ?: 999999;
+
+        if (empty($sort)) {
+            $sort = $op['sort'] ?? (!empty($this->model) && $this->model->getPk() ? $this->model->getPk() : 'id');
+        }
+        if (empty($order)) {
+            $order = $op['order'] ?? "DESC";
+        }
+        unset($op['sort'], $op['order']);
 
         $where = [];
 

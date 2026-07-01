@@ -17,6 +17,7 @@
         :pagination="pagination"
         @pagination:size-change="handleSizeChange"
         @pagination:current-change="handleCurrentChange"
+        @sort-change="handleSortChange"
       />
     </ElCard>
   </div>
@@ -78,7 +79,8 @@
     resetSearchParams,
     handleSizeChange,
     handleCurrentChange,
-    refreshData
+    refreshData,
+    handleSortChange
   } = useTable({
     core: {
       apiFn: getUserStats,
@@ -109,17 +111,20 @@
         {
           label: $t('yaZhu'),
           prop: 'bet_amount',
-          minWidth: 120
+          minWidth: 120,
+          sortable: true
         },
         {
           label: $t('yingJin'),
           prop: 'win_amount',
-          minWidth: 120
+          minWidth: 120,
+          sortable: true
         },
         {
           label: $t('yaZhuCiShu'),
           prop: 'bet_times',
-          minWidth: 100
+          minWidth: 100,
+          sortable: true
         },
         {
           label: $t('wanFaYingShou'),
@@ -145,7 +150,7 @@
   }
 
   function handleReset() {
-    resetSearchParams()
+    resetSearchParams(artTableRef.value?.elTableRef)
   }
 </script>
 
