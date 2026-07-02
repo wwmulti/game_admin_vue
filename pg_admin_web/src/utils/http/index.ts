@@ -40,10 +40,20 @@ interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
 
 const { VITE_API_URL, VITE_WITH_CREDENTIALS } = import.meta.env
 
+/** 根据前端域名动态推导后端请求地址（将域名中的 vue 替换为 server） */
+function getBaseApiUrl(): string {
+  const hostname = window.location.hostname
+  const serverHostname = hostname.replace('vue', 'server')
+  if (serverHostname !== hostname) {
+    return `${window.location.protocol}//${serverHostname}`
+  }
+  return VITE_API_URL
+}
+
 /** Axios实例 */
 const axiosInstance = axios.create({
   timeout: REQUEST_TIMEOUT,
-  baseURL: VITE_API_URL,
+  baseURL: getBaseApiUrl(),
   withCredentials: VITE_WITH_CREDENTIALS === 'true',
   validateStatus: (status) => status >= 200 && status < 300,
   transformResponse: [
