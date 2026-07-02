@@ -47,13 +47,7 @@
             <ElOption :label="$t('jieKou')" :value="0" />
           </ElSelect>
         </ElFormItem>
-        <ElFormItem :label="$t('luYouDiZhi')" required>
-          <ElInput v-model="form.path" :placeholder="$t('luYouDiZhi')" />
-        </ElFormItem>
-        <ElFormItem :label="$t('luYouMingCheng')">
-          <ElInput v-model="form.name" :placeholder="$t('luYouMingCheng')" />
-        </ElFormItem>
-        <ElFormItem :label="$t('biaoTi')">
+        <ElFormItem :label="$t('biaoTi')" required>
           <ElInput v-model="form.title" :placeholder="$t('biaoTi')" />
         </ElFormItem>
         <ElFormItem :label="$t('qingQiuDiZhi')">
@@ -76,8 +70,15 @@
         <ElFormItem :label="$t('paiXu')">
           <ElInput v-model="form.sort" :placeholder="$t('paiXu')" />
         </ElFormItem>
-        <ElFormItem :label="$t('luYouZuJian')" v-if="form.tag === 1">
-          <ElInput v-model="form.component" :placeholder="$t('luYouZuJian')" />
+        <ElDivider v-if="form.tag === 1"><span style="font-size: 15px; font-weight: bold; color: var(--el-color-warning)">{{ $t('qianDuanLuYouPeiZhi') }}</span></ElDivider>
+        <ElFormItem :label="$t('luYouLuJing')" v-if="form.tag === 1">
+          <ElInput v-model="form.path" :placeholder="$t('qianDuanLuYouLuJingShiLi')" />
+        </ElFormItem>
+        <ElFormItem :label="$t('zuJianMingCheng')" v-if="form.tag === 1">
+          <ElInput v-model="form.name" :placeholder="$t('zuJianMingChengShiLi')" />
+        </ElFormItem>
+        <ElFormItem :label="$t('zuJianLuJing')" v-if="form.tag === 1">
+          <ElInput v-model="form.component" :placeholder="$t('qianDuanZuJianLuJingShiLi')" />
         </ElFormItem>
       </ElForm>
       <template #footer>

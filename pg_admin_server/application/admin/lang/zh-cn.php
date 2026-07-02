@@ -220,4 +220,13 @@ return [
     'User Module'                                           => '会员模块',
     'Register'                                              => '注册',
     'User Center'                                           => '会员中心',
+    'Request url can only contain letters, numbers and slashes' => '请求URL只能包含字母、数字和斜杠',
+    'The request url already exists' => '请求URL已存在',
+    'Title is required' => '标题不能为空',
+    'The title already exists' => '标题已存在',
+    'Path can only contain letters, numbers and slashes' => '路径只能包含字母、数字和斜杠',
+    'The path already exists' => '路径已存在',
+    'Component can only contain letters, numbers and slashes' => '组件只能包含字母、数字和斜杠',
+    'Route name can only contain letters and numbers' => '路由名称只能包含字母和数字',
+    'The route name already exists' => '路由名称已存在',
 ];

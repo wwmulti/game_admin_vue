@@ -153,7 +153,7 @@ class Details extends Backend
         }
         // $RoomData = Room::column('id,name');
         $roomName = [];
-        $gameTypes = config('constant.game_types');
+        $gameTypes = $this->getGameTypes();
         foreach ($RoomData as $key => $val) {
             $roomName[$key] = sprintf('%s(%s)', $val['name'], $gameTypes[$val['type_id']] ?? '-');
         }

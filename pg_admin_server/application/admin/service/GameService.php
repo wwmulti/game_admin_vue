@@ -8,6 +8,7 @@ use app\job\GameDataJob;
 use think\Cache;
 use think\Db;
 use think\Queue;
+use app\admin\model\RoomType;
 
 class GameService
 {
@@ -19,7 +20,7 @@ class GameService
 
     public function __construct()
     {
-        $this->gameTypes = config('constant.game_types');
+        $this->gameTypes = RoomType::where('status', 1)->column('id,name');
     }
 
 

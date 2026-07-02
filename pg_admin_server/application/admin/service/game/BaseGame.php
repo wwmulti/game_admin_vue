@@ -8,6 +8,7 @@ use app\job\CheckGameJob;
 use app\job\GameDataJob;
 use think\Cache;
 use think\Queue;
+use app\admin\model\RoomType;
 
 /**
  * 游戏基类 - 提供通用实现
@@ -41,7 +42,7 @@ abstract class BaseGame implements IGame
     public function __construct()
     {
         $this->gameDomain = config('constant.domain');
-        $this->gameTypes = config('constant.game_types');
+        $this->gameTypes = RoomType::where('status', 1)->column('id,name');
     }
 
     /**

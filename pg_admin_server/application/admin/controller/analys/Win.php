@@ -39,7 +39,7 @@ class Win extends Backend
 
     public function rooms($array = false)
     {
-        $game_types = config('constant.game_types');
+        $game_types = $this->getGameTypes();
         $room_data = RoomModel::where('status', 1)->column('id,type_id,name');
         $result = [];
         foreach ($room_data as $key => $value) {
@@ -140,7 +140,7 @@ class Win extends Backend
         $result = json_decode($row->result, true) ?: [];
         
         $merchant_name = Merchants::where('id', $condition['merchant'] ?? 0)->value('name') ?: '-';
-        $game_types = config('constant.game_types');
+        $game_types = $this->getGameTypes();
         $room_info = RoomModel::where('id', $condition['game'] ?? 0)->find();
         $game_name = $room_info ? sprintf('%s(%s)', $room_info['name'], $game_types[$room_info['type_id']] ?? $room_info['type_id']) : '-';
         $rtpData = Rtp::column('rtp', 'id');

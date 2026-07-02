@@ -61,15 +61,25 @@ const axiosInstance = axios.create({
   ]
 })
 
+/** 语言映射：前端语言枚举 → 后端语言标识 */
+const LANGUAGE_MAP: Record<string, string> = {
+  zh: 'zh-cn',
+  en: 'en'
+}
+
 /** 请求拦截器 */
 axiosInstance.interceptors.request.use(
   (request: InternalAxiosRequestConfig) => {
-    const { accessToken } = useUserStore()
+    const { accessToken, language } = useUserStore()
     if (accessToken) {
       // 如果 token 已经包含 Bearer 前缀，直接使用；否则添加 Bearer 前缀
       const authValue = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`
       request.headers.set('Authorization', authValue)
     }
+
+    // 添加语言参数，后端通过 request()->param('lang') 读取
+    const backendLang = LANGUAGE_MAP[language] || 'zh-cn'
+    request.params = { ...request.params, lang: backendLang }
 
     if (request.data && !(request.data instanceof FormData) && !request.headers['Content-Type']) {
       request.headers.set('Content-Type', 'application/json')

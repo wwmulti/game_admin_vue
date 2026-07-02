@@ -35,7 +35,7 @@ class Game extends Backend
 
     public function rooms($isArr = false)
     {
-        $game_types = config('constant.game_types');
+        $game_types = $this->getGameTypes();
         $room_data = RoomModel::where('status', 1)->column('id,type_id,name');
         $result = [];
         foreach ($room_data as $key => $value) {

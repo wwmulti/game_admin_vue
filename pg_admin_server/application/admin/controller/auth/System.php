@@ -57,8 +57,9 @@ class System extends Backend
      */
     public function authedit()
     {
+        $model = model('app\common\model\AuthRule');
         $id = request()->post('id', 0, 'intval');
-        $row = model('app\common\model\AuthRule')->get(['id' => $id]);
+        $row = $model->get(['id' => $id]);
 
         if (!$row) {
             return $this->jsonFail(__('No Results were found'));
@@ -95,24 +96,20 @@ class System extends Backend
             'path' => request()->post('path', '', 'strip_tags'),
         ];
 
-        if ($ismenu) {
-            $check = model('app\common\model\AuthRule')->get(['route_name' => $params['route_name']]);
-            if ($check && $check['id'] != $row['id']) {
-                return $this->jsonFail(__('The route name already exists'));
-            }
-        } else {
-            $params['path'] = '';
-            $params['route_name'] = '';
-            $params['component'] = '';
+        
+        $checkRet = $this->vailadateAuthParams($model, $params, $row);
+        if ($checkRet !== true) {
+            return $checkRet;
         }
 
         //这里需要针对name做唯一验证
-        $ruleValidate = \think\Loader::validate('AuthRule', 'validate', false, 'admin');
+        /* $ruleValidate = \think\Loader::validate('AuthRule', 'validate', false, 'admin');
         $ruleValidate->rule([
             'name' => 'require|unique:AuthRuleApi,name,' . $row->id,
             // 'route_name' => 'require|unique:AuthRuleApi,route_name,' . $row->id,
         ]);
-        $result = $row->validate()->save($params);
+        $result = $row->validate()->save($params); */
+        $result = $row->save($params);
         if ($result === false) {
             return $this->jsonFail($row->getError());
         }
@@ -146,28 +143,16 @@ class System extends Backend
             'path' => request()->post('path', '', 'strip_tags'),
         ];
 
-        $validate = new \app\common\validate\AuthRule();
+        /* $validate = new \app\common\validate\AuthRule();
         if (!$validate->scene('add')->check($params)) {
             return $this->jsonFail($validate->getError());
-        }
+        } */
 
         $model = model('app\common\model\AuthRule');
-        $check = $model->where('name', '=', $params['name'])->find();
-        if ($check) {
-            return $this->jsonFail(__('The name already exists'));
+        $checkRet = $this->vailadateAuthParams($model, $params, []);
+        if ($checkRet !== true) {
+            return $checkRet;
         }
-
-        if ($params['ismenu'] == 1) {
-            $check1 = $model->where('route_name', '=', $params['route_name'])->find();
-            if ($check1) {
-                return $this->jsonFail(__('The route_name already exists'));
-            }
-        } else {
-            $params['path'] = '';
-            $params['route_name'] = '';
-            $params['component'] = '';
-        }
-
         
         $result = $model->create($params);
         if ($result === false) {
@@ -176,6 +161,60 @@ class System extends Backend
 
         $this->auth->clearMenuCache();
         return $this->jsonSucc();       
+    }
+
+    // 验证参数
+    protected function vailadateAuthParams($model, &$params, $row = [])
+    {
+        $editCheck = function ($check) use ($row) {
+            if (empty($row)) {
+                return true;
+            }
+            return $check['id'] != $row['id'];
+        };
+
+        if (!preg_match('/^[a-zA-Z0-9\/]+$/', $params['name'])) {
+            return $this->jsonFail(__('Request url can only contain letters, numbers and slashes'));
+        }
+        $check = $model->where('name', '=', $params['name'])->find();
+        if ($check && $editCheck($check)) {
+            return $this->jsonFail(__('The request url already exists'));
+        }
+
+        if (!trim($params['title'])) {
+            return $this->jsonFail(__('Title is required'));
+        }
+        $titleCheck = $model->where('title', '=', $params['title'])->find();
+        if ($titleCheck && $editCheck($titleCheck)) {
+            return $this->jsonFail(__('The title already exists'));
+        }
+
+        if ($params['ismenu'] == 1) {
+            if (!preg_match('/^[a-zA-Z0-9\/]+$/', $params['path'])) {
+                return $this->jsonFail(__('Path can only contain letters, numbers and slashes'));
+            }
+            $check = $model->where('path', '=', $params['path'])->find();
+            if ($check && $editCheck($check)) {
+                return $this->jsonFail(__('The path already exists'));
+            }
+
+            if ($params['component'] && !preg_match('/^[a-zA-Z0-9\/]+$/', $params['component'])) {
+                return $this->jsonFail(__('Component can only contain letters, numbers and slashes'));
+            }
+
+            if (!preg_match('/^[a-zA-Z0-9]+$/', $params['route_name'])) {
+                return $this->jsonFail(__('Route name can only contain letters and numbers'));
+            }
+            $check = $model->where('route_name', '=', $params['route_name'])->find();
+            if ($check && $editCheck($check)) {
+                return $this->jsonFail(__('The route name already exists'));
+            }
+        } else {
+            $params['path'] = '';
+            $params['route_name'] = '';
+            $params['component'] = '';
+        }
+        return true;
     }
 
     /**

@@ -15,6 +15,7 @@ use think\Validate;
 use app\common\utils\JwtAuth;
 use app\admin\model\Admin;
 use app\common\services\SystemRoleServices;
+use app\admin\model\RoomType;
 
 /**
  * 后台控制器基类
@@ -400,6 +401,7 @@ class Backend extends Controller
         // 收集所有 GET 参数，排除分页/排序等系统参数
         $systemFields = ['sort', 'order', 'page', 'limit'];
         $allParams = $this->request->get();
+        unset($allParams['lang']);
         foreach ($allParams as $field => $value) {
             // 跳过系统字段
             if (in_array($field, $systemFields)) {
@@ -851,5 +853,11 @@ class Backend extends Controller
     protected function jsonError($message = 'error', $data = null)
     {
         return json(['code' => 1, 'data' => $data, 'message' => $message]);
+    }
+
+    protected function getGameTypes()
+    {
+        $gameTypes = RoomType::where('status', 1)->column('id,name');
+        return $gameTypes;
     }
 }

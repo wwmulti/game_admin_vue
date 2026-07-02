@@ -11,6 +11,7 @@ use app\admin\service\game\WgGame;
 use app\admin\service\game\PpGame;
 use app\admin\service\game\UuGame;
 use app\admin\service\game\G759Game;
+use app\admin\model\RoomType;
 
 /**
  * 游戏工厂
@@ -73,7 +74,7 @@ class GameFactory
      */
     public static function createByName($typeName)
     {
-        $types = config('constant.game_types') ?? [];
+        $types = RoomType::where('status', 1)->column('id,name') ?? [];
         $typeId = array_search($typeName, $types);
         if ($typeId === false) {
             throw new \Exception("游戏类型不存在: $typeName");

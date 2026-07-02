@@ -581,7 +581,7 @@ class SpinStatistic extends Backend
         }
         $result = [
             'game_types_list' => $gameTypeList,
-            'game_types' => config('constant.game_types'),
+            'game_types' => $this->getGameTypes(),
             'languages' => config('constant.languages'),
             'page_domain' => config('constant.page_domain'),
         ];
