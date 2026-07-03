@@ -173,7 +173,7 @@ class System extends Backend
             return $check['id'] != $row['id'];
         };
 
-        if (!preg_match('/^[a-zA-Z0-9\/]+$/', $params['name'])) {
+        if (!preg_match('/^[a-zA-Z0-9\/?&=._-]+$/', $params['name'])) {
             return $this->jsonFail(__('Request url can only contain letters, numbers and slashes'));
         }
         $check = $model->where('name', '=', $params['name'])->find();
@@ -190,7 +190,7 @@ class System extends Backend
         }
 
         if ($params['ismenu'] == 1) {
-            if (!preg_match('/^[a-zA-Z0-9\/]+$/', $params['path'])) {
+            if (!preg_match('/^[a-zA-Z0-9\/_-]+$/', $params['path'])) {
                 return $this->jsonFail(__('Path can only contain letters, numbers and slashes'));
             }
             $check = $model->where('path', '=', $params['path'])->find();
@@ -198,11 +198,11 @@ class System extends Backend
                 return $this->jsonFail(__('The path already exists'));
             }
 
-            if ($params['component'] && !preg_match('/^[a-zA-Z0-9\/]+$/', $params['component'])) {
+            if ($params['component'] && !preg_match('/^[a-zA-Z0-9\/_-]+$/', $params['component'])) {
                 return $this->jsonFail(__('Component can only contain letters, numbers and slashes'));
             }
 
-            if (!preg_match('/^[a-zA-Z0-9]+$/', $params['route_name'])) {
+            if (!preg_match('/^[a-zA-Z0-9_-]+$/', $params['route_name'])) {
                 return $this->jsonFail(__('Route name can only contain letters and numbers'));
             }
             $check = $model->where('route_name', '=', $params['route_name'])->find();
