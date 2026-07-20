@@ -161,7 +161,7 @@ class SpinStatistic extends Backend
     public function roomConfig()
     {
         $defConfig = [
-            'bet' => [["id" => 1, "bet_amount" => FormatMoney(1000)]],
+            'bet' => [["id" => 1, "bet_amount" => FormatMoney(1000)], ["id" => 2, "bet_amount" => FormatMoney(100000)]],
             'mod' => [["mod" => 1, "desc" => "普通"]]
         ];
 
