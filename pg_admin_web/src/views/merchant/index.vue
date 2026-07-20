@@ -11,7 +11,7 @@
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
         <template #left>
           <ElButton @click="handleShowAddDialog">{{ $t('btn.add') }}</ElButton>
-          <ElButton @click="handleBatchDelete">{{ $t('piLiangShanChu') }}</ElButton>
+          <!-- <ElButton @click="handleBatchDelete">{{ $t('piLiangShanChu') }}</ElButton> -->
           <ElButton @click="handleConfigRefresh">{{ $t('peiZhiShuaXin') }}</ElButton>
           <span class="config-refresh-hint">{{ $t('peiZhiShuaXinTiShi') }}</span>
         </template>
@@ -117,9 +117,19 @@
         <ElFormItem :label="$t('xiuGaiYuEHuiDiao')">
           <ElInput v-model="form.cash_transferinout_url" :placeholder="$t('xiuGaiYuEHuiDiao')" />
         </ElFormItem>
+        <ElRow :gutter="20">
+          <ElCol :span="12">
+            <ElFormItem :label="$t('zhuangTai')">
+              <ElRadioGroup v-model="form.status">
+                <ElRadio :value="1">{{ $t('zhengChang') }}</ElRadio>
+                <ElRadio :value="0">{{ $t('jinYong') }}</ElRadio>
+              </ElRadioGroup>
+            </ElFormItem>
+          </ElCol>
+        </ElRow>
 
         <!-- 显示配置 -->
-        <ElDivider content-position="left">{{ $t('peiZhi') }}</ElDivider>
+        <ElDivider content-position="left">{{ $t('keHuDuanPeiZhi') }}</ElDivider>
         <ElRow :gutter="20">
           <ElCol :span="12">
             <ElFormItem :label="$t('shiFouXianShiShiJian')">
@@ -157,17 +167,7 @@
           </ElCol>
         </ElRow>
 
-        <!-- 状态 & 其他 -->
-        <ElDivider content-position="left">{{ $t('qiTa') }}</ElDivider>
         <ElRow :gutter="20">
-          <ElCol :span="12">
-            <ElFormItem :label="$t('zhuangTai')">
-              <ElRadioGroup v-model="form.status">
-                <ElRadio :value="1">{{ $t('zhengChang') }}</ElRadio>
-                <ElRadio :value="0">{{ $t('jinYong') }}</ElRadio>
-              </ElRadioGroup>
-            </ElFormItem>
-          </ElCol>
           <ElCol :span="12">
             <ElFormItem :label="$t('mianFeiYouXiKaiGuan')">
               <ElRadioGroup v-model="form.free_spin_switch">
@@ -180,9 +180,15 @@
         <ElFormItem :label="$t('zuiDaZiDongCiShu')">
           <ElInput v-model.number="form.auto_max" type="number" :placeholder="$t('zuiDaZiDongCiShu')" />
         </ElFormItem>
+
+        <ElDivider content-position="left">{{ $t('fuWuDuanPeiZhi') }}</ElDivider>
         <ElFormItem :label="$t('zuiDaFanJiang')" v-if="!isAdd">
           <ElInput v-model.number="form.max_reward" type="number" :placeholder="$t('zuiDaFanJiang')" />
           <div style="color:#999;font-size:12px;margin-top:4px">1000 {{ $t('biaoShi') }} 1</div>
+        </ElFormItem>
+        <ElFormItem :label="$t('zuiDaFanJiangBeiShu')" v-if="!isAdd">
+          <ElInput v-model.number="form.max_mult" type="number" :placeholder="$t('zuiDaFanJiangBeiShu')" />
+          <div style="color:#999;font-size:12px;margin-top:4px">10000 {{ $t('biaoShi') }} 1</div>
         </ElFormItem>
 
         <!-- 编辑专属字段（仅超管可见，参考 edit.html: {if $AuthGroupAccessStatus == 1}） -->
@@ -365,15 +371,17 @@
     mark: '',
     ip_array: '',
     official_currency: 'BRL',
-    max_reward: 0 // 最大返奖
+    max_reward: 0, // 最大返奖
+    max_mult: 0 // 最大倍数
   })
 
   const form = reactive<any>(initForm())
 
   // 配置弹窗表单
-  const configForm = reactive<{ id: number | null; max_reward: number }>({
+  const configForm = reactive<{ id: number | null; max_reward: number; max_mult: number }>({
     id: null,
-    max_reward: 0
+    max_reward: 0,
+    max_mult: 0
   })
 
   /** 构建提交数据（公共字段） */
@@ -395,7 +403,8 @@
       status: form.status,
       free_spin_switch: form.free_spin_switch,
       auto_max: form.auto_max,
-      max_reward: form.max_reward
+      max_reward: form.max_reward,
+      max_mult: form.max_mult
     }
   }
 
@@ -439,6 +448,11 @@
           width: 120
         },
         {
+          label: 'zuiDaFanJiangBeiShu',
+          prop: 'setting.max_mult',
+          width: 120
+        },
+        {
           label: $t('quDaoMingCheng'),
           prop: 'name',
           minWidth: 140
@@ -475,11 +489,11 @@
                 { type: 'primary', size: 'small', onClick: () => handleShowEditDialog(row) },
                 () => $t('bianJi')
               ),
-              h(
+              /* h(
                 ElButton,
                 { type: 'danger', size: 'small', onClick: () => handleShowDeleteDialog(row) },
                 () => $t('shanChu')
-              )
+              ) */
             ])
         }
       ]
@@ -555,6 +569,7 @@
     form.ip_array = row.ip_array || ''
     form.official_currency = row.official_currency || 'BRL'
     form.max_reward = row.setting?.max_reward ?? 0
+    form.max_mult = row.setting?.max_mult ?? 0
     showEditDialog.value = true
   }
 
@@ -592,6 +607,7 @@
   function handleShowConfigDialog(row: any) {
     configForm.id = row.id
     configForm.max_reward = row.setting?.max_reward ?? 0
+    configForm.max_mult = row.setting?.max_mult ?? 0
     showConfigDialog.value = true
   }
 
@@ -601,7 +617,8 @@
     try {
       const result = await editMerchantSetting({
         id: configForm.id,
-        max_reward: configForm.max_reward
+        max_reward: configForm.max_reward,
+        max_mult: configForm.max_mult
       })
       if (result.code === 200) {
         ElMessage.success($t('chengGong'))

@@ -1330,5 +1330,8 @@
   "yingJiaShuLiang": "Winners",
   "shuJiaShuLiang": "Losers",
   "biLi": "Ratio",
-  "xianShiYiChangShuJu": "Show Abnormal Data"
+  "xianShiYiChangShuJu": "Show Abnormal Data",
+  "fuWuDuanPeiZhi": "Server Configuration",
+  "keHuDuanPeiZhi": "Client Configuration",
+  "zuiDaFanJiangBeiShu": "Maximum Reward Multiplier"
 }

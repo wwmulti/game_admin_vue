@@ -86,11 +86,13 @@ class Merchant extends Backend
             $ids = array_column($list->items(), 'id');
             $confMap = Setting::where('id', 'in', $ids)->column('conf', 'id');
         }
-        $defaultConf = ['max_reward' => 0];
+        $defaultConf = ['max_reward' => 0, 'max_mult' => 0];
 
         foreach ($list as &$vo){
             // 注入 setting 字段
             $conf = isset($confMap[$vo['id']]) ? json_decode($confMap[$vo['id']], true) : $defaultConf;
+            $conf['max_reward'] = $conf['max_reward']??0;
+            $conf['max_mult'] = $conf['max_mult']??0;
             $vo['setting'] = $conf;
             $vo['username'] = '';
             $vo['nickname'] = '';
@@ -205,7 +207,7 @@ class Merchant extends Backend
             // 最大返奖
             $insert = [
                 'id' => $merchants_id,
-                'conf' => json_encode(['max_reward' => 0]),
+                'conf' => json_encode(['max_reward' => 0, 'max_mult' => 0]),
             ];
             Setting::insert($insert);
 
@@ -367,6 +369,12 @@ class Merchant extends Backend
             return $this->jsonFail('最大返奖金额请填入正确的数字，且必须大于等于0');
         }
 
+        // 最大返奖倍数
+        $max_mult = (int)$params['max_mult'];
+        if ($max_mult < 0 || !is_numeric($params['max_mult'])) {
+            return $this->jsonFail('最大返奖倍数请填入正确的数字，且必须大于等于0');
+        }
+
         Db::startTrans();
         try {
             if(!empty($row['admin_id'])){
@@ -386,7 +394,7 @@ class Merchant extends Backend
             }
             $this->model->where('id',$row['id'])->update($update);
 
-            Setting::where('id',$row['id'])->update(['conf' => json_encode(['max_reward' => $max_reward])]);
+            Setting::where('id',$row['id'])->update(['conf' => json_encode(['max_reward' => $max_reward, 'max_mult' => $max_mult])]);
 
             Db::commit();
         } catch (\Exception $e) {

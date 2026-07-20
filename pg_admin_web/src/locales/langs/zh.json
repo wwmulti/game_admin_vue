@@ -1331,5 +1331,8 @@
   "yingJiaShuLiang": "赢家数量",
   "shuJiaShuLiang": "输家数量",
   "biLi": "比例",
-  "xianShiYiChangShuJu": "显示异常数据"
+  "xianShiYiChangShuJu": "显示异常数据",
+  "fuWuDuanPeiZhi": "服务端配置",
+  "keHuDuanPeiZhi": "客户端配置",
+  "zuiDaFanJiangBeiShu": "最大返奖倍数"
 }
