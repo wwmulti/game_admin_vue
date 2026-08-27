@@ -286,8 +286,8 @@ function startGlobalTimer() {
 
   // 仅当选中一个房间且不是“全部(0)”时显示游戏模式编辑按钮
   const showModEditBtn = computed(() => {
-    const ids = postForm.value.room_id
-    return ids.length === 1 && !ids.includes('0')
+    const ids = postForm.value.room_id as any[]
+    return ids.length === 1 && !ids.map(String).includes('0')
   })
 
   // ---- 游戏模式编辑弹窗 ----
