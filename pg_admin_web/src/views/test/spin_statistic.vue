@@ -38,6 +38,7 @@
             </ElFormItem>
             <ElFormItem>
               <ElButton type="primary" :loading="postLoading" @click="handlePostSubmit">{{ $t('queDing') }}</ElButton>
+              <ElButton v-if="showModEditBtn" plain @click="openModEditDialog">游戏模式编辑</ElButton>
             </ElFormItem>
           </ElForm>
           <div v-if="checkCount > 0" style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:linear-gradient(135deg,#e6f7ff,#bae7ff);border:1px solid #91d5ff;border-radius:20px;font-size:14px;color:#0050b3;margin-top:8px;">
@@ -68,6 +69,26 @@
         @pagination:current-change="handleCurrentChange"
       />
     </ElCard>
+
+    <!-- 游戏模式编辑弹窗 -->
+    <ElDialog v-model="modEditVisible" title="游戏模式编辑" width="520px" destroy-on-close>
+      <ElForm label-width="80px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="color:#909399;font-size:12px;">配置当前房间的游戏模式（值 + 名称）</span>
+          <ElButton type="primary" size="small" @click="addModRow">新增</ElButton>
+        </div>
+        <div v-for="(row, idx) in modEditList" :key="idx" style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+          <ElInput v-model="row.mod" placeholder="值" style="width:140px;" />
+          <ElInput v-model="row.desc" placeholder="名称" style="width:240px;" />
+          <ElButton type="danger" size="small" plain @click="removeModRow(idx)">删除</ElButton>
+        </div>
+        <div v-if="!modEditList.length" style="color:#909399;text-align:center;padding:16px 0;">暂无数据，点击右上角“新增”添加</div>
+      </ElForm>
+      <template #footer>
+        <ElButton @click="modEditVisible = false">取消</ElButton>
+        <ElButton type="primary" :loading="modEditLoading" :disabled="!modEditValid" @click="handleModSave">保存</ElButton>
+      </template>
+    </ElDialog>
   </div>
 </template>
 
@@ -134,7 +155,8 @@ function startGlobalTimer() {
     ElInput,
     ElMessage,
     ElMessageBox,
-    ElCollapseTransition
+    ElCollapseTransition,
+    ElDialog
   } from 'element-plus'
   import { ArrowUp, ArrowDown, Loading } from '@element-plus/icons-vue'
   import {
@@ -142,7 +164,8 @@ function startGlobalTimer() {
     getRoomConfig,
     apiPostSpin,
     onceMoreSpin,
-    getModList
+    getModList,
+    apiPostModConfig
   } from '@/api/spin'
 
   defineOptions({ name: 'TestSpinStatistic' })
@@ -258,6 +281,74 @@ function startGlobalTimer() {
       ElMessage.error($t('qingQiuShiBai'))
     } finally {
       postLoading.value = false
+    }
+  }
+
+  // 仅当选中一个房间且不是“全部(0)”时显示游戏模式编辑按钮
+  const showModEditBtn = computed(() => {
+    const ids = postForm.value.room_id
+    return ids.length === 1 && !ids.includes('0')
+  })
+
+  // ---- 游戏模式编辑弹窗 ----
+  const modEditVisible = ref(false)
+  const modEditLoading = ref(false)
+  const modEditList = ref<{ mod: string; desc: string }[]>([])
+  const modEditValid = computed(() => {
+    if (!modEditList.value.length) return false
+    return modEditList.value.every(r => String(r.mod).trim() && String(r.desc).trim())
+  })
+  let modEditRoomId = ''
+
+  function openModEditDialog() {
+    const roomId = postForm.value.room_id[0]
+    if (!roomId) return
+    modEditRoomId = String(roomId)
+    modEditList.value = (modOptionsForm.value || []).map((it: any) => ({
+      mod: String(it.mod ?? ''),
+      desc: String(it.desc ?? '')
+    }))
+    modEditVisible.value = true
+  }
+
+  function addModRow() {
+    modEditList.value.push({ mod: '', desc: '' })
+  }
+
+  function removeModRow(idx: number) {
+    modEditList.value.splice(idx, 1)
+  }
+
+  async function handleModSave() {
+    if (!modEditList.value.length) {
+      ElMessage.warning('请至少添加一条游戏模式')
+      return
+    }
+    const list = modEditList.value.map(r => ({ mod: String(r.mod).trim(), desc: String(r.desc).trim() }))
+    if (list.some(r => !r.mod || !r.desc)) {
+      ElMessage.warning('请完整填写每一行的“值”和“名称”')
+      return
+    }
+    modEditLoading.value = true
+    try {
+      const res = await apiPostModConfig({ room_id: modEditRoomId, list })
+      if (res.code === 200 || res.code === 0) {
+        ElMessage.success($t('chengGong'))
+        modEditVisible.value = false
+        // 用返回数据（或重新拉一次）刷新本地下拉
+        if (Array.isArray(res.data?.mod)) {
+          modOptionsForm.value = res.data.mod
+        } else {
+          const r = await getRoomConfig({ room_id: modEditRoomId })
+          modOptionsForm.value = r.data.mod || r.data || []
+        }
+      } else {
+        ElMessage.error(res.msg || $t('shiBai'))
+      }
+    } catch {
+      ElMessage.error($t('qingQiuShiBai'))
+    } finally {
+      modEditLoading.value = false
     }
   }
 

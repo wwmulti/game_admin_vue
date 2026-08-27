@@ -89,3 +89,11 @@ export function getModList(params: any) {
     params
   })
 }
+
+// 保存游戏模式配置（占位接口，待后端确认）
+export function apiPostModConfig(data: any) {
+  return request.post<any>({
+    url: '/test/spin_statistic/modSave',
+    data
+  })
+}

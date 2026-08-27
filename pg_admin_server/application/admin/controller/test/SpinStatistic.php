@@ -587,4 +587,42 @@ class SpinStatistic extends Backend
         ];
         return $this->jsonSucc($result);
     }
+
+    public function modSave(GameService $gameService)
+    {
+        $room_id = $this->request->post('room_id');
+        $list    = $this->request->post('list/a');
+
+        if (empty($room_id)) {
+            return $this->jsonFail('房间id不能为空');
+        }
+        if (empty($list) || !is_array($list)) {
+            return $this->jsonFail('游戏模式不能为空');
+        }
+        foreach ($list as $row) {
+            if (!isset($row['mod']) || $row['mod'] === '' || !isset($row['desc']) || $row['desc'] === '') {
+                return $this->jsonFail('请完整填写每一行的“值”和“名称”');
+            }
+        }
+
+        Db::startTrans();
+        try {
+            RoomMod::where('id', $room_id)->delete();
+            $rows = [];
+            foreach ($list as $row) {
+                $rows[] = [
+                    'id'   => $room_id,
+                    'mod'  => (string)$row['mod'],
+                    'desc' => (string)$row['desc'],
+                ];
+            }
+            RoomMod::insertAll($rows);
+            Db::commit();
+        } catch (\Throwable $e) {
+            Db::rollback();
+            return $this->jsonFail('保存失败：' . $e->getMessage());
+        }
+
+        return $this->jsonSucc(['mod' => $rows]);
+    }
 }
