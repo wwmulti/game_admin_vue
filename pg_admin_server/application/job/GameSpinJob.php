@@ -22,6 +22,10 @@ class GameSpinJob
             unset($post_data['type_id']);
             $ret = $this->doSpin($url, $post_data);
             // echo sprintf('gid:%s, mod:%s, ret:%s', $post_data['gid'], $post_data['mod'], $ret) . PHP_EOL;
+            save_log('game_spin_result', json_encode([
+                'data' => $post_data,
+                'ret' => $ret,
+            ]));
         } catch (\Throwable $t) {
             save_log('game_spin_error', json_encode([
                 'data' => $data,
